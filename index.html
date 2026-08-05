@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Mini-Pelle Rhinocéros</title>
+<style>
+  :root{--orange:#EE7A0C;--orange-d:#C85E00;--amber:#F6B15A;--slate:#3A4A54;--anthracite:#25313A;--green:#2FA37C;--blue:#3E7CB1;--bg:#F3F4F6;--card:#FFFFFF;--line:#E6E9ED;--ink:#25313A;--muted:#6B7785;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.4;padding:24px 22px 40px}
+  .wrap{max-width:1040px;margin:0 auto}
+  .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{width:50px;height:50px;border-radius:11px;background:var(--anthracite);display:flex;align-items:center;justify-content:center}
+  h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+  .sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .gran{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:5px}
+  .gbtn{border:none;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;padding:8px 13px;border-radius:8px;cursor:pointer;transition:.15s}
+  .gbtn.active{background:var(--anthracite);color:#fff}
+  .daterange{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:6px 10px}
+  .daterange span{color:var(--muted);font-size:13px}
+  .daterange select{border:none;background:transparent;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;padding:3px 2px}
+  .daterange .reset{border:none;background:#F4F5F7;color:var(--muted);font-size:11px;font-weight:600;border-radius:6px;padding:5px 8px;cursor:pointer}
+  .tabs{display:flex;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:6px;margin-bottom:18px}
+  .tab{flex:1;display:flex;align-items:center;justify-content:center;gap:9px;border:none;background:transparent;color:var(--muted);font-size:14px;font-weight:700;padding:12px 10px;border-radius:9px;cursor:pointer;transition:.15s}
+  .tab:hover{background:#F6F7F9}.tab.active{background:var(--anthracite);color:#fff}
+  .tab .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .field label{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+  .filters{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+  select.big{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;color:var(--ink);background:#fff;font-weight:600;cursor:pointer}
+  select.big:disabled{background:#F4F5F7;color:#9AA5B1;cursor:not-allowed}
+  .hint{font-size:11px;color:var(--muted);margin-top:6px}.hint b{color:var(--orange-d)}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px 16px 14px;border-left:4px solid var(--line)}
+  .card.k1{border-left-color:var(--slate)}.card.k2{border-left-color:var(--orange)}.card.k3{border-left-color:var(--amber)}.card.k4{border-left-color:var(--green)}.card.kc{border-left-color:#B4BCC4}
+  .card .val{font-size:26px;font-weight:800;letter-spacing:-1px}
+  .card .lab{font-size:12px;color:var(--muted);margin-top:2px}
+  .card .foot{font-size:11px;color:var(--muted);margin-top:7px}.card .foot b{color:var(--ink)}
+  .kpirow-label{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin:2px 0 9px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+  .panel h2{font-size:14px;font-weight:700;margin-bottom:2px}
+  .panel .psub{font-size:11.5px;color:var(--muted);margin-bottom:10px}
+  .legend{display:flex;gap:16px;justify-content:flex-end;flex-wrap:wrap;margin-bottom:4px}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}.legend i.ln{height:3px;border-radius:2px;width:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .chartwrap{position:relative}svg{width:100%;height:auto;display:block}
+  .tooltip{position:absolute;pointer-events:none;background:#25313A;color:#fff;border-radius:9px;padding:9px 11px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.2);opacity:0;transition:opacity .12s;z-index:5;min-width:150px}
+  .tooltip .tt-h{font-weight:700;margin-bottom:6px;font-size:12.5px}
+  .tooltip .tt-r{display:flex;justify-content:space-between;gap:14px;align-items:center;margin:2px 0}
+  .tooltip .tt-r i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px}
+  .tooltip .tt-r b{font-weight:700}.tooltip .tt-tot{border-top:1px solid rgba(255,255,255,.2);margin-top:6px;padding-top:5px}
+  .vline{stroke:#B9C1CA;stroke-width:1;stroke-dasharray:3 3}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:9px 8px;text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+  thead th{background:var(--anthracite);color:#fff;font-weight:600;font-size:11.5px}
+  thead th:first-child{border-radius:7px 0 0 7px}thead th:last-child{border-radius:0 7px 7px 0}
+  tbody tr:nth-child(even){background:#FAFBFC}tbody td{border-bottom:1px solid var(--line)}
+  .rate{color:var(--orange-d);font-style:italic;font-weight:600}
+  tr.total td{font-weight:800;border-top:2px solid var(--anthracite);background:#FFF6EC}
+  .tblwrap{overflow-x:auto}
+  .methodo .srclist{list-style:none;margin:6px 0 4px}
+  .methodo .srclist li{font-size:12.5px;color:var(--ink);padding:8px 0;border-bottom:1px solid var(--line);line-height:1.5}
+  .methodo .srclist li:last-child{border-bottom:none}
+  .methodo .ok{color:var(--green);font-weight:600}.methodo .wip{color:var(--orange-d);font-weight:600}
+  .methodo .mnote{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.55}
+  .footnote{font-size:11px;color:var(--muted);text-align:center;margin-top:22px}
+  .donutbox{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding-top:6px}
+  .donutbox svg{width:168px;height:168px;flex:none}
+  .dlegend{font-size:12.5px;color:var(--ink);min-width:180px}
+  .dlegend .dl{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .dlegend i{width:11px;height:11px;border-radius:3px;flex:none}.dlegend b{margin-left:auto;padding-left:14px;font-weight:700}.dlegend small{color:var(--muted)}
+  .creatives{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px}
+  .creative{border:1px solid var(--line);border-radius:11px;padding:10px;display:flex;gap:11px;align-items:center}
+  .creative .thumb{width:58px;height:58px;border-radius:8px;flex:none;background:#EEF1F4;display:flex;align-items:center;justify-content:center;color:#B4BCC4;font-size:22px;overflow:hidden}
+  .creative .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .creative .cname{font-weight:700;font-size:12.5px;line-height:1.25}.creative .cmet{font-size:11.5px;color:var(--muted);margin-top:4px}.creative .cmet b{color:var(--ink)}
+  .slide{display:none}.slide.active{display:block}
+  @media(max-width:720px){.cards{grid-template-columns:repeat(2,1fr)}.filters,.grid2{grid-template-columns:1fr}.tab span.txt{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="brand">
+      <div class="logo"><svg width="36" height="36" viewBox="0 0 100 100" fill="none"><g fill="#fff"><path d="M8 62 C10 50 20 44 32 43 C34 36 40 30 49 29 C50 24 54 20 60 19 C58 24 60 27 64 28 C72 24 82 22 92 26 C86 28 84 32 84 37 C88 40 90 46 88 52 C86 49 82 47 78 48 C80 54 79 61 74 66 L76 76 L68 76 L66 68 C60 70 53 70 47 68 L45 78 L37 78 L38 67 C34 65 30 62 28 58 C22 60 15 63 12 70 L8 70 Z"/><path d="M60 19 C63 14 67 11 72 12 C69 15 69 19 66 22 C64 21 62 20 60 19 Z" fill="#EE7A0C"/></g><circle cx="46" cy="41" r="2.6" fill="#25313A"/></svg></div>
+      <div><h1>Dashboard Média — Mini-Pelle Rhinocéros</h1><div class="sub" id="subtitle"></div></div>
+    </div>
+    <div class="controls">
+      <div class="gran">
+        <button class="gbtn active" data-g="month">Mensuel · MoM</button>
+        <button class="gbtn" data-g="week">Hebdo · WoW</button>
+      </div>
+      <div class="daterange"><select id="fromSel"></select><span>→</span><select id="toSel"></select><button class="reset" id="rangeReset">Tout</button></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-t="hubspot"><span class="dot" style="background:#2FA37C"></span><span class="txt">Funnel HubSpot</span></button>
+    <button class="tab" data-t="gads"><span class="dot" style="background:#EE7A0C"></span><span class="txt">Google Ads</span></button>
+    <button class="tab" data-t="meta"><span class="dot" style="background:#3E7CB1"></span><span class="txt">Meta Ads</span></button>
+  </div>
+
+  <section class="slide active" id="slide-hubspot">
+    <div class="filters">
+      <div class="field"><label>Source / Canal <sup style="color:var(--orange);font-weight:800">*</sup></label><select id="sourceSel" class="big"></select><div class="hint" id="sourceHint">Vue consolidée tous canaux confondus (Source d'origine HubSpot).</div></div>
+      <div class="field"><label>Campagne</label><select id="campSel" class="big" disabled><option>Toutes les campagnes</option></select><div class="hint" id="campHint">Sélectionnez Google Ads ou Meta Ads pour voir les campagnes.</div></div>
+    </div>
+    <div class="cards" id="hs-cards"></div>
+    <div class="panel"><h2>Funnel <span id="funnelGran"></span> <span id="funnelSrc" style="color:var(--muted);font-weight:600"></span></h2><div class="psub" id="funnelSub"></div>
+      <div class="legend"><span><i style="background:#3A4A54"></i>Leads</span><span><i style="background:#EE7A0C"></i>MQL</span><span><i style="background:#F6B15A"></i>Opportunités</span><span><i style="background:#2FA37C"></i>Ventes</span></div>
+      <div class="chartwrap" id="funnelWrap"><div id="funnelChart"></div><div class="tooltip" id="funnelTip"></div></div></div>
+    <div class="panel"><h2>Investissement média</h2><div class="psub">Dépense Google Ads + Meta Ads — pour croiser business et pression média</div>
+      <div class="legend" id="investLegend"></div><div class="chartwrap" id="investWrap"><div id="investChart"></div><div class="tooltip" id="investTip"></div></div></div>
+    <div class="panel"><h2>Leads par canal</h2><div class="psub">Répartition des leads par Source d'origine — toutes sources (stacked area)</div>
+      <div class="legend" id="leadCanalLegend"></div><div class="chartwrap" id="leadCanalWrap"><div id="leadCanalChart"></div><div class="tooltip" id="leadCanalTip"></div></div></div>
+    <div class="panel"><h2>Détail par période</h2><div class="tblwrap"><table id="hs-table"></table></div></div>
+    <div class="panel methodo"><h2><span style="color:var(--orange)">*</span> Sources &amp; méthodologie</h2>
+      <div class="psub">Le filtre « Source / Canal » s'appuie sur la colonne <b>Source d'origine</b> de HubSpot.</div>
+      <ul class="srclist"><li><b>Référencement payant → Google Ads</b> · <b>Campagne sociale payante → Meta Ads</b> · <b>Recherche naturelle → SEO</b>. <span class="ok">Données réelles HubSpot.</span></li>
+      <li><b>Trafic direct · Sources hors ligne · Autres campagnes · Renvois · Réseau social organique · Renvois IA</b> — libellés HubSpot repris tels quels. <span class="ok">Données réelles.</span></li></ul>
+      <p class="mnote"><b>Funnel :</b> contacts entrés dans chaque étape sur la période. <b>Vue Mensuelle</b> = 13 mois glissants (MoM) · <b>Vue Hebdo</b> = 14 semaines glissantes (WoW). « Tous les canaux » = somme des sources. La dernière période est partielle.</p></div>
+  </section>
+
+  <section class="slide" id="slide-gads">
+    <div class="kpirow-label">KPI Business</div><div class="cards" id="g-kpi1"></div>
+    <div class="kpirow-label">KPI Campagnes</div><div class="cards" id="g-kpi2"></div>
+    <div class="grid2">
+      <div class="panel"><h2>Investissement &amp; Conversions</h2><div class="psub" id="gConvSub"></div><div class="legend"><span><i style="background:#EE7A0C"></i>Investissement</span><span><i class="ln" style="background:#3A4A54"></i>Conversions</span></div><div class="chartwrap" id="gConvWrap"><div id="gConvChart"></div><div class="tooltip" id="gConvTip"></div></div></div>
+      <div class="panel"><h2>Investissement &amp; CPL</h2><div class="psub" id="gCplSub"></div><div class="legend"><span><i style="background:#EE7A0C"></i>Investissement</span><span><i class="ln" style="background:#2FA37C"></i>CPL</span></div><div class="chartwrap" id="gCplWrap"><div id="gCplChart"></div><div class="tooltip" id="gCplTip"></div></div></div>
+    </div>
+    <div class="panel"><h2>Conversions par type</h2><div class="psub">Demande de devis / contact / appels / infos + Mini-Pelle MQL &amp; Opportunité — stacked area</div><div class="legend" id="gTypeLegend"></div><div class="chartwrap" id="gTypeWrap"><div id="gTypeChart"></div><div class="tooltip" id="gTypeTip"></div></div></div>
+    <div class="panel"><h2>Performance par campagne</h2><div class="psub" id="gTableSub"></div><div class="tblwrap"><table id="g-table"></table></div></div>
+    <div class="panel methodo"><p class="mnote"><b>Note conversions Mini-Pelle :</b> le tracking Mini-Pelle MQL / Opportunité (funnel HubSpot renvoyé dans Google Ads) est actif depuis ~printemps 2026. La conversion <b>Mini-Pelle Client</b> n'a pas encore de conversion attribuée à Google. <b>ROAS</b> = valeur de conversion / investissement. Les tableaux reflètent la période affichée (mensuelle ou hebdo).</p></div>
+  </section>
+
+  <section class="slide" id="slide-meta">
+    <div class="kpirow-label">KPI Business</div><div class="cards" id="m-kpi1"></div>
+    <div class="kpirow-label">KPI Campagnes</div><div class="cards" id="m-kpi2"></div>
+    <div class="grid2">
+      <div class="panel"><h2>Investissement &amp; Demandes de devis</h2><div class="psub" id="mLeadSub"></div><div class="legend"><span><i style="background:#3E7CB1"></i>Investissement</span><span><i class="ln" style="background:#EE7A0C"></i>Demandes de devis</span></div><div class="chartwrap" id="mLeadWrap"><div id="mLeadChart"></div><div class="tooltip" id="mLeadTip"></div></div></div>
+      <div class="panel"><h2>Investissement &amp; CPL</h2><div class="psub" id="mCplSub"></div><div class="legend"><span><i style="background:#3E7CB1"></i>Investissement</span><span><i class="ln" style="background:#2FA37C"></i>CPL</span></div><div class="chartwrap" id="mCplWrap"><div id="mCplChart"></div><div class="tooltip" id="mCplTip"></div></div></div>
+    </div>
+    <div class="panel"><h2>Performance par campagne</h2><div class="psub" id="mTableSub"></div><div class="tblwrap"><table id="m-table"></table></div></div>
+    <div class="panel"><h2>Performance par ad set</h2><div class="psub">Ciblage : audiences, retargeting, look-alike, intérêts</div><div class="tblwrap"><table id="m-adset-table"></table></div></div>
+    <div class="grid2">
+      <div class="panel"><h2>Investissement par ad set</h2><div class="donutbox"><div id="m-donut-inv-svg"></div><div class="dlegend" id="m-donut-inv-leg"></div></div></div>
+      <div class="panel"><h2>Demandes de devis par ad set</h2><div class="donutbox"><div id="m-donut-lead-svg"></div><div class="dlegend" id="m-donut-lead-leg"></div></div></div>
+    </div>
+    <div class="panel"><h2>Top créatifs par investissement</h2><div class="psub">Top annonces sur la période — vignettes Meta en direct (peuvent expirer sur un fichier figé)</div><div class="creatives" id="m-creatives"></div></div>
+    <div class="panel methodo"><p class="mnote"><b>À noter :</b> les « Demandes de devis » sont comptées par Meta (attribution plateforme) et diffèrent des leads Meta vus dans HubSpot. Tables campagnes / ad sets / créas reflètent la période affichée (mensuelle ou hebdo).</p></div>
+  </section>
+
+  <div class="footnote" id="footnote"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+// ============ ÉTAT ============
+const C={slate:'#3A4A54',orange:'#EE7A0C',amber:'#F6B15A',green:'#2FA37C',blue:'#3E7CB1'};
+const CANAL_CFG=[{key:'offline',color:'#AEB6BF',short:'Sources hors ligne'},{key:'direct',color:'#7A5CC0',short:'Trafic direct'},{key:'organic',color:'#2FA37C',short:'SEO (recherche naturelle)'},{key:'paidsearch',color:'#EE7A0C',short:'Google Ads'},{key:'paidsocial',color:'#3E7CB1',short:'Meta Ads'},{key:'othercamp',color:'#F6B15A',short:'Autres campagnes'},{key:'social',color:'#4FB0C6',short:'Réseau social organique'},{key:'referrals',color:'#D9736B',short:'Renvois'},{key:'aireferrals',color:'#C7B84F',short:'Renvois IA'}];
+const SRC_ORDER=['all','organic','paidsearch','paidsocial','direct','offline','othercamp','social','referrals','aireferrals'];
+let gran='month', source='all', tab='hubspot', rangeStart=0, rangeEnd=0;
+let LABELS,FUNNEL,GADS,META,N;
+function setActive(){if(gran==='month'){LABELS=LABELS_M;FUNNEL=FUNNEL_M;GADS=GADS_M;META=META_M;}else{LABELS=LABELS_W;FUNNEL=FUNNEL_W;GADS=GADS_W;META=META_W;}N=LABELS.length;}
+const sl=a=>a.slice(rangeStart,rangeEnd+1);
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const fmt=n=>Math.round(n).toLocaleString('fr-FR');const eur=n=>fmt(n)+' €';
+const eur1=n=>n.toFixed(1).replace('.',',')+' €';const pct=n=>n.toFixed(1).replace('.',',')+' %';
+const k=n=>Math.abs(n)>=1000?Math.round(n/1000)+'k':Math.round(n);
+const unit=()=>gran==='month'?'mois':'sem.';
+
+// ============ CHARTS ============
+function niceMax(m){if(m<=0)return 10;const p=Math.pow(10,Math.floor(Math.log10(m)));const r=m/p;let n=r<=1?1:r<=1.5?1.5:r<=2?2:r<=3?3:r<=5?5:10;return n*p;}
+const W=1000,H=290,ML=54,MR=14,MT=12,MB=38;
+function xLabels(s,labels,px){labels.forEach((lab,i)=>s.push('<text x="'+px(i).toFixed(1)+'" y="'+(H-MB+18)+'" text-anchor="middle" font-size="10" fill="#6B7785">'+lab+'</text>'));}
+function areaChart(elId,labels,series){
+  const ph=H-MT-MB,pw=W-ML-MR,n=labels.length;
+  const totals=labels.map((_,i)=>series.reduce((a,se)=>a+se.data[i],0));
+  const max=niceMax(Math.max(...totals,1)),step=n>1?pw/(n-1):0,px=i=>ML+step*i,py=v=>MT+ph-ph*v/max;
+  const fY=series[0].fmtAxis||(v=>fmt(v));
+  let s=['<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" font-family="inherit">'];
+  for(let i=0;i<=4;i++){const y=MT+ph-(ph*i/4);s.push('<line x1="'+ML+'" y1="'+y+'" x2="'+(W-MR)+'" y2="'+y+'" stroke="#EEF1F4"/>');s.push('<text x="'+(ML-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#9AA5B1">'+fY(max*i/4)+'</text>');}
+  let base=new Array(n).fill(0);
+  series.forEach(se=>{const top=base.map((b,i)=>b+se.data[i]);const up=top.map((v,i)=>px(i).toFixed(1)+','+py(v).toFixed(1));const dn=base.map((v,i)=>px(i).toFixed(1)+','+py(v).toFixed(1)).reverse();s.push('<polygon points="'+up.concat(dn).join(' ')+'" fill="'+se.color+'" fill-opacity="0.85"/>');s.push('<polyline points="'+up.join(' ')+'" fill="none" stroke="'+se.color+'" stroke-width="1.4"/>');base=top;});
+  xLabels(s,labels,px);s.push('<line class="vline" id="'+elId+'-vl" x1="0" y1="'+MT+'" x2="0" y2="'+(MT+ph)+'" style="opacity:0"/></svg>');
+  document.getElementById(elId).innerHTML=s.join('');
+  return {labels,series,totals,showTotal:true,geom:{first:ML,span:step}};
+}
+function comboChart(elId,labels,bar,line){
+  const ph=H-MT-MB,pw=W-ML-MR,n=labels.length,ml=ML,mr=48;
+  const barMax=niceMax(Math.max(...bar.data,1)),lineMax=niceMax(Math.max(...line.data,1));
+  const gw=pw/n,bw=Math.min(gw*0.55,34),px=i=>ml+gw*i+gw/2,pyB=v=>MT+ph-ph*v/barMax,pyL=v=>MT+ph-ph*v/lineMax;
+  let s=['<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" font-family="inherit">'];
+  for(let i=0;i<=4;i++){const y=MT+ph-(ph*i/4);s.push('<line x1="'+ml+'" y1="'+y+'" x2="'+(W-mr)+'" y2="'+y+'" stroke="#EEF1F4"/>');s.push('<text x="'+(ml-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10.5" fill="#9AA5B1">'+bar.fmtAxis(barMax*i/4)+'</text>');s.push('<text x="'+(W-mr+8)+'" y="'+(y+4)+'" text-anchor="start" font-size="10.5" fill="#9AA5B1">'+line.fmtAxis(lineMax*i/4)+'</text>');}
+  bar.data.forEach((v,i)=>{const h=ph*v/barMax;s.push('<rect x="'+(px(i)-bw/2).toFixed(1)+'" y="'+pyB(v).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,h).toFixed(1)+'" rx="2.5" fill="'+bar.color+'" fill-opacity="0.9"/>');});
+  const pts=line.data.map((v,i)=>px(i).toFixed(1)+','+pyL(v).toFixed(1));s.push('<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+line.color+'" stroke-width="2.4"/>');
+  line.data.forEach((v,i)=>s.push('<circle cx="'+px(i).toFixed(1)+'" cy="'+pyL(v).toFixed(1)+'" r="3" fill="'+line.color+'"/>'));
+  xLabels(s,labels,px);s.push('<line class="vline" id="'+elId+'-vl" x1="0" y1="'+MT+'" x2="0" y2="'+(MT+ph)+'" style="opacity:0"/></svg>');
+  document.getElementById(elId).innerHTML=s.join('');
+  return {labels,series:[bar,line],showTotal:false,geom:{first:ml+gw/2,span:gw}};
+}
+function attachTip(wrapId,chartId,tipId,meta){
+  const wrap=document.getElementById(wrapId),tip=document.getElementById(tipId);
+  const svg=document.getElementById(chartId).querySelector('svg'),vl=document.getElementById(chartId+'-vl');
+  const {first,span}=meta.geom,n=meta.labels.length;
+  wrap.onmousemove=ev=>{const r=svg.getBoundingClientRect(),scale=r.width/W,xv=(ev.clientX-r.left)/scale;let i=Math.max(0,Math.min(n-1,Math.round((xv-first)/span)));
+    if(vl){const vx=first+span*i;vl.setAttribute('x1',vx);vl.setAttribute('x2',vx);vl.style.opacity=1;}
+    let rows=meta.series.map(se=>'<div class="tt-r"><span><i style="background:'+se.color+'"></i>'+se.name+'</span><b>'+(se.fmt?se.fmt(se.data[i]):fmt(se.data[i]))+'</b></div>').join('');
+    if(meta.showTotal){const t=meta.series.reduce((a,se)=>a+se.data[i],0);rows+='<div class="tt-r tt-tot"><span>Total</span><b>'+(meta.series[0].fmt?meta.series[0].fmt(t):fmt(t))+'</b></div>';}
+    tip.innerHTML='<div class="tt-h">'+meta.labels[i]+'</div>'+rows;tip.style.opacity=1;
+    const tx=(first+span*i)*scale;let left=tx+14;if(left+tip.offsetWidth>r.width)left=tx-tip.offsetWidth-14;tip.style.left=Math.max(0,left)+'px';tip.style.top=(ev.clientY-r.top-10)+'px';};
+  wrap.onmouseleave=()=>{tip.style.opacity=0;if(vl)vl.style.opacity=0;};
+}
+function card(cls,val,lab,foot){return '<div class="card '+cls+'"><div class="val">'+val+'</div><div class="lab">'+lab+'</div>'+(foot?'<div class="foot">'+foot+'</div>':'')+'</div>';}
+
+// ============ RENDER ============
+function sourceData(key){if(key!=='all')return FUNNEL[key];const acc={leads:new Array(N).fill(0),mql:new Array(N).fill(0),opp:new Array(N).fill(0),cust:new Array(N).fill(0)};Object.values(FUNNEL).forEach(s=>['leads','mql','opp','cust'].forEach(kk=>s[kk].forEach((v,i)=>acc[kk][i]+=v)));return {label:'Tous les canaux',...acc};}
+function renderHubSpot(){
+  const d=sourceData(source),L=sl(LABELS),leads=sl(d.leads),mql=sl(d.mql),opp=sl(d.opp),cust=sl(d.cust);
+  const g=sl(GADS.cost),m=sl(META.cost),tL=sum(leads),tM=sum(mql),tO=sum(opp),tC=sum(cust);
+  document.getElementById('funnelGran').textContent=gran==='month'?'mensuel':'hebdomadaire';
+  document.getElementById('funnelSrc').textContent='— '+d.label;
+  document.getElementById('funnelSub').textContent='Contacts entrés dans chaque étape ('+(gran==='month'?'par mois':'par semaine')+', stacked area)';
+  document.getElementById('hs-cards').innerHTML=card('k1',fmt(tL),'Leads',(rangeEnd-rangeStart+1)+' '+unit())+card('k2',fmt(tM),'MQL','Lead→MQL <b>'+(tL?(tM/tL*100).toFixed(0):0)+'%</b>')+card('k3',fmt(tO),'Opportunités','MQL→Opp <b>'+(tM?(tO/tM*100).toFixed(0):0)+'%</b>')+card('k4',fmt(tC),'Ventes','Lead→Vente <b>'+(tL?(tC/tL*100).toFixed(1):0)+'%</b>');
+  attachTip('funnelWrap','funnelChart','funnelTip',areaChart('funnelChart',L,[{name:'Leads',color:C.slate,data:leads,fmt:fmt},{name:'MQL',color:C.orange,data:mql,fmt:fmt},{name:'Opportunités',color:C.amber,data:opp,fmt:fmt},{name:'Ventes',color:C.green,data:cust,fmt:fmt}]));
+  let iSeries=[{name:'Google Ads',color:C.orange,data:g,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'Meta Ads',color:C.blue,data:m,fmt:eur}];
+  if(source==='paidsearch')iSeries=[iSeries[0]];else if(source==='paidsocial')iSeries=[{name:'Meta Ads',color:C.blue,data:m,fmt:eur,fmtAxis:v=>k(v)+'€'}];
+  document.getElementById('investLegend').innerHTML=iSeries.map(x=>'<span><i style="background:'+x.color+'"></i>'+x.name+'</span>').join('');
+  attachTip('investWrap','investChart','investTip',areaChart('investChart',L,iSeries));
+  const canalSeries=CANAL_CFG.map(c=>({name:c.short,color:c.color,data:sl(FUNNEL[c.key].leads),fmt:fmt}));
+  document.getElementById('leadCanalLegend').innerHTML=CANAL_CFG.map(c=>'<span><i style="background:'+c.color+'"></i>'+c.short+'</span>').join('');
+  attachTip('leadCanalWrap','leadCanalChart','leadCanalTip',areaChart('leadCanalChart',L,canalSeries));
+  const rows=[['Leads',leads],['MQL',mql],['Opportunités',opp],['Ventes',cust]];
+  let h='<thead><tr><th>Étape</th>'+L.map(l=>'<th>'+l+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+  rows.forEach(([nm,arr])=>h+='<tr class="'+(nm==='Ventes'?'total':'')+'"><td>'+nm+'</td>'+arr.map(v=>'<td>'+fmt(v)+'</td>').join('')+'<td>'+fmt(sum(arr))+'</td></tr>');
+  h+='<tr><td class="rate">Taux Lead → MQL</td>'+leads.map((v,i)=>'<td class="rate">'+(v?(mql[i]/v*100).toFixed(0)+'%':'—')+'</td>').join('')+'<td class="rate">'+(tL?(tM/tL*100).toFixed(0):0)+'%</td></tr></tbody>';
+  document.getElementById('hs-table').innerHTML=h;
+}
+function renderGads(){
+  const L=sl(LABELS),cost=sl(GADS.cost),conv=sl(GADS.conv),clicks=sl(GADS.clicks),impr=sl(GADS.impr);
+  const tc=sum(cost),tv=sum(conv),tk=sum(clicks),ti=sum(impr);const cpl=tv?tc/tv:0,ctr=ti?tk/ti*100:0,cpc=tk?tc/tk:0,convr=tk?tv/tk*100:0;
+  document.getElementById('g-kpi1').innerHTML=card('k2',eur(tc),'Investissement',(rangeEnd-rangeStart+1)+' '+unit())+card('k1',fmt(tv),'Conversions','')+card('k3',eur1(cpl),'CPL','coût par conversion')+card('k4',pct(convr),'Taux de conversion','conv. / clic');
+  document.getElementById('g-kpi2').innerHTML=card('kc',fmt(ti),'Impressions','')+card('kc',fmt(tk),'Clics','')+card('kc',eur1(cpc),'CPC','')+card('kc',pct(ctr),'CTR','');
+  const sub=gran==='month'?'par mois':'par semaine';document.getElementById('gConvSub').textContent=sub;document.getElementById('gCplSub').textContent=sub;
+  const cplSeries=cost.map((c,i)=>conv[i]?c/conv[i]:0);
+  attachTip('gConvWrap','gConvChart','gConvTip',comboChart('gConvChart',L,{name:'Investissement',color:C.orange,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'Conversions',color:C.slate,data:conv,fmt:fmt,fmtAxis:v=>Math.round(v)}));
+  attachTip('gCplWrap','gCplChart','gCplTip',comboChart('gCplChart',L,{name:'Investissement',color:C.orange,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'CPL',color:C.green,data:cplSeries,fmt:eur1,fmtAxis:v=>Math.round(v)+'€'}));
+  const types=[{name:'Demande de contact',color:'#3A4A54',data:sl(GADS.contact)},{name:'Demande de devis',color:'#EE7A0C',data:sl(GADS.devis)},{name:'Appels +20s',color:'#F6B15A',data:sl(GADS.appels)},{name:'Demande d\'infos',color:'#AEB6BF',data:sl(GADS.infos)},{name:'Mini-Pelle MQL',color:'#2FA37C',data:sl(GADS.mql)},{name:'Mini-Pelle Opportunité',color:'#3E7CB1',data:sl(GADS.opp)}];
+  types.forEach(t=>t.fmt=fmt);
+  document.getElementById('gTypeLegend').innerHTML=types.map(t=>'<span><i style="background:'+t.color+'"></i>'+t.name+'</span>').join('');
+  attachTip('gTypeWrap','gTypeChart','gTypeTip',areaChart('gTypeChart',L,types));
+  document.getElementById('gTableSub').textContent='Investissement, conversions, coût/conv., valeur (CA) et ROAS — période affichée ('+(rangeEnd-rangeStart+1)+' '+unit()+')';
+  const cs=GADS.campaigns.slice().sort((a,b)=>b.cost-a.cost);
+  let h='<thead><tr><th>Campagne</th><th>Investissement</th><th>Conversions</th><th>Coût/conv.</th><th>Valeur (CA)</th><th>ROAS</th></tr></thead><tbody>';let Tc=0,Tv=0,Tval=0;
+  cs.forEach(c=>{Tc+=c.cost;Tv+=c.conv;Tval+=c.value;const roas=c.cost?c.value/c.cost:0;h+='<tr><td>'+c.name+'</td><td>'+eur(c.cost)+'</td><td>'+fmt(c.conv)+'</td><td>'+eur1(c.cost/c.conv)+'</td><td>'+eur(c.value)+'</td><td><b style="color:'+(roas>=1.5?'#2FA37C':roas>=1?'#C58A00':'#C0392B')+'">'+roas.toFixed(2)+'</b></td></tr>';});
+  h+='<tr class="total"><td>Total</td><td>'+eur(Tc)+'</td><td>'+fmt(Tv)+'</td><td>'+eur1(Tc/Tv)+'</td><td>'+eur(Tval)+'</td><td>'+(Tval/Tc).toFixed(2)+'</td></tr></tbody>';
+  document.getElementById('g-table').innerHTML=h;
+}
+function renderMeta(){
+  const L=sl(LABELS),cost=sl(META.cost),leads=sl(META.leads),clicks=sl(META.clicks),impr=sl(META.impr);
+  const tc=sum(cost),tl=sum(leads),tk=sum(clicks),ti=sum(impr);const cpl=tl?tc/tl:0,ctr=ti?tk/ti*100:0,cpc=tk?tc/tk:0;
+  document.getElementById('m-kpi1').innerHTML=card('k2',eur(tc),'Investissement',(rangeEnd-rangeStart+1)+' '+unit())+card('k1',fmt(tl),'Demandes de devis','')+card('k3',eur1(cpl),'CPL','coût par devis')+card('k4',pct(tk?tl/tk*100:0),'Taux de conversion','devis / clic');
+  document.getElementById('m-kpi2').innerHTML=card('kc',fmt(ti),'Impressions','')+card('kc',fmt(tk),'Clics','')+card('kc',eur1(cpc),'CPC','')+card('kc',pct(ctr),'CTR','');
+  const sub=gran==='month'?'par mois':'par semaine';document.getElementById('mLeadSub').textContent=sub;document.getElementById('mCplSub').textContent=sub;
+  const cplSeries=cost.map((c,i)=>leads[i]?c/leads[i]:0);
+  attachTip('mLeadWrap','mLeadChart','mLeadTip',comboChart('mLeadChart',L,{name:'Investissement',color:C.blue,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'Demandes de devis',color:C.orange,data:leads,fmt:fmt,fmtAxis:v=>Math.round(v)}));
+  attachTip('mCplWrap','mCplChart','mCplTip',comboChart('mCplChart',L,{name:'Investissement',color:C.blue,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'CPL',color:C.green,data:cplSeries,fmt:eur1,fmtAxis:v=>Math.round(v)+'€'}));
+  document.getElementById('mTableSub').textContent='Période affichée ('+(rangeEnd-rangeStart+1)+' '+unit()+')';
+  const cs=META.campaigns.slice().sort((a,b)=>b.cost-a.cost);
+  let h='<thead><tr><th>Campagne</th><th>Investissement</th><th>Demandes de devis</th><th>CPL</th><th>Impressions</th><th>Clics</th></tr></thead><tbody>';let Tc=0,Tl=0,Ti=0,Tk=0;
+  cs.forEach(c=>{Tc+=c.cost;Tl+=c.leads;Ti+=c.impr;Tk+=c.clicks;h+='<tr><td>'+c.name+'</td><td>'+eur(c.cost)+'</td><td>'+fmt(c.leads)+'</td><td>'+eur1(c.cost/c.leads)+'</td><td>'+fmt(c.impr)+'</td><td>'+fmt(c.clicks)+'</td></tr>';});
+  h+='<tr class="total"><td>Total</td><td>'+eur(Tc)+'</td><td>'+fmt(Tl)+'</td><td>'+eur1(Tc/Tl)+'</td><td>'+fmt(Ti)+'</td><td>'+fmt(Tk)+'</td></tr></tbody>';
+  document.getElementById('m-table').innerHTML=h;
+  // ad sets
+  const sets=META.adsets.slice().sort((a,b)=>b.cost-a.cost);
+  let ht='<thead><tr><th>Ad set</th><th>Campagne</th><th>Investissement</th><th>Demandes de devis</th><th>CPL</th></tr></thead><tbody>';let Sc=0,Sl=0;
+  sets.forEach(a=>{Sc+=a.cost;Sl+=a.leads;ht+='<tr><td>'+a.name+'</td><td>'+a.camp+'</td><td>'+eur(a.cost)+'</td><td>'+fmt(a.leads)+'</td><td>'+eur1(a.cost/a.leads)+'</td></tr>';});
+  ht+='<tr class="total"><td>Total</td><td></td><td>'+eur(Sc)+'</td><td>'+fmt(Sl)+'</td><td>'+eur1(Sc/Sl)+'</td></tr></tbody>';
+  document.getElementById('m-adset-table').innerHTML=ht;
+  const AC=['#3E7CB1','#EE7A0C','#2FA37C','#F6B15A'];
+  const invItems=sets.map((a,i)=>({label:a.name,value:a.cost,color:AC[i%AC.length]})),leadItems=sets.map((a,i)=>({label:a.name,value:a.leads,color:AC[i%AC.length]}));
+  document.getElementById('m-donut-inv-svg').innerHTML=donutSVG(invItems);document.getElementById('m-donut-inv-leg').innerHTML=donutLegend(invItems,eur);
+  document.getElementById('m-donut-lead-svg').innerHTML=donutSVG(leadItems);document.getElementById('m-donut-lead-leg').innerHTML=donutLegend(leadItems,fmt);
+  const cont=document.getElementById('m-creatives');cont.innerHTML='';
+  META.ads.slice().sort((a,b)=>b.cost-a.cost).forEach(ad=>{const cp=ad.leads?ad.cost/ad.leads:0;const cd=document.createElement('div');cd.className='creative';const th=document.createElement('div');th.className='thumb';th.textContent='▣';if(ad.thumb){const img=document.createElement('img');img.loading='lazy';img.referrerPolicy='no-referrer';img.onload=()=>{th.textContent='';th.appendChild(img);};img.src=ad.thumb;}const info=document.createElement('div');info.innerHTML='<div class="cname">'+ad.name+'</div><div class="cmet">'+eur(ad.cost)+' · <b>'+fmt(ad.leads)+' devis</b> · CPL '+(ad.leads?eur1(cp):'—')+'</div>';cd.appendChild(th);cd.appendChild(info);cont.appendChild(cd);});
+}
+function donutSVG(items){const total=items.reduce((a,x)=>a+x.value,0)||1;let a=-Math.PI/2;const cx=100,cy=100,R=84,IR=52;let s='<svg viewBox="0 0 200 200" width="168" height="168">';items.forEach(it=>{let frac=it.value/total;let a1=a+frac*2*Math.PI;if(frac>=0.9999)a1=a+2*Math.PI-0.0001;const x0=cx+R*Math.cos(a),y0=cy+R*Math.sin(a),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1),xi1=cx+IR*Math.cos(a1),yi1=cy+IR*Math.sin(a1),xi0=cx+IR*Math.cos(a),yi0=cy+IR*Math.sin(a),lg=frac>0.5?1:0;s+='<path d="M'+x0.toFixed(2)+' '+y0.toFixed(2)+' A'+R+' '+R+' 0 '+lg+' 1 '+x1.toFixed(2)+' '+y1.toFixed(2)+' L'+xi1.toFixed(2)+' '+yi1.toFixed(2)+' A'+IR+' '+IR+' 0 '+lg+' 0 '+xi0.toFixed(2)+' '+yi0.toFixed(2)+' Z" fill="'+it.color+'"/>';a=a1;});return s+'</svg>';}
+function donutLegend(items,vf){const total=items.reduce((a,x)=>a+x.value,0)||1;return items.map(it=>'<div class="dl"><i style="background:'+it.color+'"></i><span>'+it.label+'</span><b>'+vf(it.value)+' <small>('+(it.value/total*100).toFixed(0)+'%)</small></b></div>').join('');}
+
+function render(){
+  setActive();
+  if(rangeEnd>N-1)rangeEnd=N-1;if(rangeStart>rangeEnd)rangeStart=rangeEnd;
+  document.getElementById('subtitle').textContent='Vue '+(gran==='month'?'mensuelle (MoM)':'hebdomadaire (WoW)')+' · '+LABELS[rangeStart]+' → '+LABELS[rangeEnd]+' · Extraction du '+EXTRACT_DATE;
+  document.getElementById('footnote').textContent='Tayrona Digital · Données HubSpot (compte 6301234) + Google Ads + Meta Ads · Généré automatiquement · Dernière période partielle.';
+  if(tab==='hubspot')renderHubSpot();else if(tab==='gads')renderGads();else renderMeta();
+}
+// ============ CONTRÔLES ============
+function fillDateSelects(){
+  const f=document.getElementById('fromSel'),t=document.getElementById('toSel');
+  const opts=LABELS.map((l,i)=>'<option value="'+i+'">'+l+'</option>').join('');
+  f.innerHTML=opts;t.innerHTML=opts;f.value=rangeStart;t.value=rangeEnd;
+}
+function applyGran(g){gran=g;setActive();rangeStart=0;rangeEnd=N-1;fillDateSelects();render();}
+document.querySelectorAll('.gbtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.gbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');applyGran(b.dataset.g);}));
+document.getElementById('fromSel').addEventListener('change',e=>{rangeStart=+e.target.value;if(rangeStart>rangeEnd){rangeEnd=rangeStart;document.getElementById('toSel').value=rangeEnd;}render();});
+document.getElementById('toSel').addEventListener('change',e=>{rangeEnd=+e.target.value;if(rangeEnd<rangeStart){rangeStart=rangeEnd;document.getElementById('fromSel').value=rangeStart;}render();});
+document.getElementById('rangeReset').addEventListener('click',()=>{rangeStart=0;rangeEnd=N-1;fillDateSelects();render();});
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');tab=b.dataset.t;document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));document.getElementById('slide-'+tab).classList.add('active');render();}));
+const sourceSel=document.getElementById('sourceSel');
+sourceSel.innerHTML=SRC_ORDER.map(kk=>'<option value="'+kk+'">'+(kk==='all'?'Tous les canaux (HubSpot global)':FUNNEL_M[kk].label)+'</option>').join('');
+const campSel=document.getElementById('campSel'),campHint=document.getElementById('campHint'),srcHint=document.getElementById('sourceHint');
+sourceSel.addEventListener('change',e=>{source=e.target.value;
+  if(source==='paidsearch'||source==='paidsocial'){const list=(source==='paidsearch'?GADS.campaigns:META.campaigns).map(c=>c.name);campSel.disabled=false;campSel.innerHTML='<option>Toutes les campagnes</option>'+list.map(c=>'<option>'+c+'</option>').join('');campHint.innerHTML='Campagnes réelles chargées. <b>Détail par campagne = via conversions plateforme (à venir).</b>';srcHint.innerHTML='Canal <b>'+(source==='paidsearch'?'Google Ads':'Meta Ads')+'</b> — funnel réel HubSpot.';}
+  else{campSel.disabled=true;campSel.innerHTML='<option>Toutes les campagnes</option>';campHint.textContent='Sélectionnez Google Ads ou Meta Ads pour voir les campagnes.';srcHint.innerHTML=source==='all'?'Vue consolidée tous canaux confondus (Source d\'origine HubSpot).':'Canal <b>'+sourceData(source).label+'</b> — funnel réel HubSpot.';}
+  render();});
+// init
+setActive();rangeStart=0;rangeEnd=N-1;fillDateSelects();render();
+</script>
+</body>
+</html>
