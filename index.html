@@ -166,6 +166,8 @@ let LABELS,FUNNEL,GADS,META,N;
 function setActive(){if(gran==='month'){LABELS=LABELS_M;FUNNEL=FUNNEL_M;GADS=GADS_M;META=META_M;}else{LABELS=LABELS_W;FUNNEL=FUNNEL_W;GADS=GADS_W;META=META_W;}N=LABELS.length;}
 const sl=a=>a.slice(rangeStart,rangeEnd+1);
 const sum=a=>a.reduce((x,y)=>x+y,0);
+// Agrège les lignes détaillées (campaignsP/adsetsP/adsP) sur la période filtrée [rangeStart..rangeEnd], par nom.
+function aggRange(periodArr,sumKeys){const acc={};for(let i=rangeStart;i<=rangeEnd;i++){(periodArr&&periodArr[i]||[]).forEach(e=>{let a=acc[e.name];if(!a){a=acc[e.name]=Object.assign({},e);sumKeys.forEach(k=>a[k]=0);}sumKeys.forEach(k=>a[k]+=(e[k]||0));});}return Object.values(acc);}
 const fmt=n=>Math.round(n).toLocaleString('fr-FR');const eur=n=>fmt(n)+' €';
 const eur1=n=>n.toFixed(1).replace('.',',')+' €';const pct=n=>n.toFixed(1).replace('.',',')+' %';
 const k=n=>Math.abs(n)>=1000?Math.round(n/1000)+'k':Math.round(n);
@@ -252,7 +254,7 @@ function renderGads(){
   document.getElementById('gTypeLegend').innerHTML=types.map(t=>'<span><i style="background:'+t.color+'"></i>'+t.name+'</span>').join('');
   attachTip('gTypeWrap','gTypeChart','gTypeTip',areaChart('gTypeChart',L,types));
   document.getElementById('gTableSub').textContent='Investissement, conversions, coût/conv., valeur (CA) et ROAS — période affichée ('+(rangeEnd-rangeStart+1)+' '+unit()+')';
-  const cs=GADS.campaigns.slice().sort((a,b)=>b.cost-a.cost);
+  const cs=(GADS.campaignsP?aggRange(GADS.campaignsP,['cost','conv','value']):GADS.campaigns.slice()).sort((a,b)=>b.cost-a.cost);
   let h='<thead><tr><th>Campagne</th><th>Investissement</th><th>Conversions</th><th>Coût/conv.</th><th>Valeur (CA)</th><th>ROAS</th></tr></thead><tbody>';let Tc=0,Tv=0,Tval=0;
   cs.forEach(c=>{Tc+=c.cost;Tv+=c.conv;Tval+=c.value;const roas=c.cost?c.value/c.cost:0;h+='<tr><td>'+c.name+'</td><td>'+eur(c.cost)+'</td><td>'+fmt(c.conv)+'</td><td>'+eur1(c.cost/c.conv)+'</td><td>'+eur(c.value)+'</td><td><b style="color:'+(roas>=1.5?'#2FA37C':roas>=1?'#C58A00':'#C0392B')+'">'+roas.toFixed(2)+'</b></td></tr>';});
   h+='<tr class="total"><td>Total</td><td>'+eur(Tc)+'</td><td>'+fmt(Tv)+'</td><td>'+eur1(Tc/Tv)+'</td><td>'+eur(Tval)+'</td><td>'+(Tval/Tc).toFixed(2)+'</td></tr></tbody>';
@@ -268,13 +270,13 @@ function renderMeta(){
   attachTip('mLeadWrap','mLeadChart','mLeadTip',comboChart('mLeadChart',L,{name:'Investissement',color:C.blue,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'Demandes de devis',color:C.orange,data:leads,fmt:fmt,fmtAxis:v=>Math.round(v)}));
   attachTip('mCplWrap','mCplChart','mCplTip',comboChart('mCplChart',L,{name:'Investissement',color:C.blue,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'CPL',color:C.green,data:cplSeries,fmt:eur1,fmtAxis:v=>Math.round(v)+'€'}));
   document.getElementById('mTableSub').textContent='Période affichée ('+(rangeEnd-rangeStart+1)+' '+unit()+')';
-  const cs=META.campaigns.slice().sort((a,b)=>b.cost-a.cost);
+  const cs=(META.campaignsP?aggRange(META.campaignsP,['cost','leads','impr','clicks']):META.campaigns.slice()).sort((a,b)=>b.cost-a.cost);
   let h='<thead><tr><th>Campagne</th><th>Investissement</th><th>Demandes de devis</th><th>CPL</th><th>Impressions</th><th>Clics</th></tr></thead><tbody>';let Tc=0,Tl=0,Ti=0,Tk=0;
   cs.forEach(c=>{Tc+=c.cost;Tl+=c.leads;Ti+=c.impr;Tk+=c.clicks;h+='<tr><td>'+c.name+'</td><td>'+eur(c.cost)+'</td><td>'+fmt(c.leads)+'</td><td>'+eur1(c.cost/c.leads)+'</td><td>'+fmt(c.impr)+'</td><td>'+fmt(c.clicks)+'</td></tr>';});
   h+='<tr class="total"><td>Total</td><td>'+eur(Tc)+'</td><td>'+fmt(Tl)+'</td><td>'+eur1(Tc/Tl)+'</td><td>'+fmt(Ti)+'</td><td>'+fmt(Tk)+'</td></tr></tbody>';
   document.getElementById('m-table').innerHTML=h;
   // ad sets
-  const sets=META.adsets.slice().sort((a,b)=>b.cost-a.cost);
+  const sets=(META.adsetsP?aggRange(META.adsetsP,['cost','leads']):META.adsets.slice()).sort((a,b)=>b.cost-a.cost);
   let ht='<thead><tr><th>Ad set</th><th>Campagne</th><th>Investissement</th><th>Demandes de devis</th><th>CPL</th></tr></thead><tbody>';let Sc=0,Sl=0;
   sets.forEach(a=>{Sc+=a.cost;Sl+=a.leads;ht+='<tr><td>'+a.name+'</td><td>'+a.camp+'</td><td>'+eur(a.cost)+'</td><td>'+fmt(a.leads)+'</td><td>'+eur1(a.cost/a.leads)+'</td></tr>';});
   ht+='<tr class="total"><td>Total</td><td></td><td>'+eur(Sc)+'</td><td>'+fmt(Sl)+'</td><td>'+eur1(Sc/Sl)+'</td></tr></tbody>';
@@ -284,7 +286,8 @@ function renderMeta(){
   document.getElementById('m-donut-inv-svg').innerHTML=donutSVG(invItems);document.getElementById('m-donut-inv-leg').innerHTML=donutLegend(invItems,eur);
   document.getElementById('m-donut-lead-svg').innerHTML=donutSVG(leadItems);document.getElementById('m-donut-lead-leg').innerHTML=donutLegend(leadItems,fmt);
   const cont=document.getElementById('m-creatives');cont.innerHTML='';
-  META.ads.slice().sort((a,b)=>b.cost-a.cost).forEach(ad=>{const cp=ad.leads?ad.cost/ad.leads:0;const cd=document.createElement('div');cd.className='creative';const th=document.createElement('div');th.className='thumb';th.textContent='▣';if(ad.thumb){const img=document.createElement('img');img.loading='lazy';img.referrerPolicy='no-referrer';img.onload=()=>{th.textContent='';th.appendChild(img);};img.src=ad.thumb;}const info=document.createElement('div');info.innerHTML='<div class="cname">'+ad.name+'</div><div class="cmet">'+eur(ad.cost)+' · <b>'+fmt(ad.leads)+' devis</b> · CPL '+(ad.leads?eur1(cp):'—')+'</div>';cd.appendChild(th);cd.appendChild(info);cont.appendChild(cd);});
+  const adsList=(META.adsP?aggRange(META.adsP,['cost','leads']).map(a=>({name:a.name,cost:a.cost,leads:a.leads,thumb:(META.adThumbs&&META.adThumbs[a.name])||''})):META.ads.slice());
+  adsList.sort((a,b)=>b.cost-a.cost).slice(0,8).forEach(ad=>{const cp=ad.leads?ad.cost/ad.leads:0;const cd=document.createElement('div');cd.className='creative';const th=document.createElement('div');th.className='thumb';th.textContent='▣';if(ad.thumb){const img=document.createElement('img');img.loading='lazy';img.referrerPolicy='no-referrer';img.onload=()=>{th.textContent='';th.appendChild(img);};img.src=ad.thumb;}const info=document.createElement('div');info.innerHTML='<div class="cname">'+ad.name+'</div><div class="cmet">'+eur(ad.cost)+' · <b>'+fmt(ad.leads)+' devis</b> · CPL '+(ad.leads?eur1(cp):'—')+'</div>';cd.appendChild(th);cd.appendChild(info);cont.appendChild(cd);});
 }
 function donutSVG(items){const total=items.reduce((a,x)=>a+x.value,0)||1;let a=-Math.PI/2;const cx=100,cy=100,R=84,IR=52;let s='<svg viewBox="0 0 200 200" width="168" height="168">';items.forEach(it=>{let frac=it.value/total;let a1=a+frac*2*Math.PI;if(frac>=0.9999)a1=a+2*Math.PI-0.0001;const x0=cx+R*Math.cos(a),y0=cy+R*Math.sin(a),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1),xi1=cx+IR*Math.cos(a1),yi1=cy+IR*Math.sin(a1),xi0=cx+IR*Math.cos(a),yi0=cy+IR*Math.sin(a),lg=frac>0.5?1:0;s+='<path d="M'+x0.toFixed(2)+' '+y0.toFixed(2)+' A'+R+' '+R+' 0 '+lg+' 1 '+x1.toFixed(2)+' '+y1.toFixed(2)+' L'+xi1.toFixed(2)+' '+yi1.toFixed(2)+' A'+IR+' '+IR+' 0 '+lg+' 0 '+xi0.toFixed(2)+' '+yi0.toFixed(2)+' Z" fill="'+it.color+'"/>';a=a1;});return s+'</svg>';}
 function donutLegend(items,vf){const total=items.reduce((a,x)=>a+x.value,0)||1;return items.map(it=>'<div class="dl"><i style="background:'+it.color+'"></i><span>'+it.label+'</span><b>'+vf(it.value)+' <small>('+(it.value/total*100).toFixed(0)+'%)</small></b></div>').join('');}
