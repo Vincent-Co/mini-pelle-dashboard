@@ -34,8 +34,11 @@
   select.big:disabled{background:#F4F5F7;color:#9AA5B1;cursor:not-allowed}
   .hint{font-size:11px;color:var(--muted);margin-top:6px}.hint b{color:var(--orange-d)}
   .chanbar{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:16px}
+  .chanbar.c3{grid-template-columns:1.2fr 1.6fr 1fr}
+  .field .stopt{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
   .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
   .cards.c5{grid-template-columns:repeat(5,1fr)}
+  .cards.c3acq{grid-template-columns:repeat(3,1fr);margin-bottom:14px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px 16px 14px;border-left:4px solid var(--line)}
   .card.k1{border-left-color:var(--slate)}.card.k2{border-left-color:var(--orange)}.card.k3{border-left-color:var(--amber)}.card.k4{border-left-color:var(--green)}.card.kc{border-left-color:#B4BCC4}.card.k5{border-left-color:var(--blue)}
   .card .val{font-size:26px;font-weight:800;letter-spacing:-1px}
@@ -78,6 +81,20 @@
   td .namedot .stdot{width:9px;height:9px;border-radius:50%;flex:none}
   .cprpill{display:inline-block;padding:2px 8px;border-radius:20px;font-weight:700;font-size:12px}
   .cpr-good{background:#E3F5EC;color:#1E8E5A}.cpr-mid{background:#FBF0D8;color:#B57E00}.cpr-bad{background:#FBE4E1;color:#C0392B}
+  .cprpill.cpr-lowvol{background:#EEF1F4;color:#8A97A3}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:12px}
+  .segb{border:0;background:#fff;padding:7px 15px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+  .segb+.segb{border-left:1px solid var(--line)}.segb.active{background:var(--anthracite);color:#fff}
+  .copylist{display:flex;flex-direction:column;gap:6px}
+  .crow{position:relative;display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+  .crow .cbar{position:absolute;left:0;top:0;bottom:0;background:#EAF1F8;z-index:0}
+  .crow.empty .cbar{background:#F4F5F6}
+  .crow .cinfo{position:relative;z-index:1;flex:1;min-width:0}
+  .crow .ctxt{font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .crow.empty .ctxt{color:var(--muted);font-style:italic;font-weight:600}
+  .crow .cmeta{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .crow .cpr{position:relative;z-index:1;flex:none}
+  .cnote{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
   .methodo .srclist{list-style:none;margin:6px 0 4px}
   .methodo .srclist li{font-size:12.5px;color:var(--ink);padding:8px 0;border-bottom:1px solid var(--line);line-height:1.5}
   .methodo .srclist li:last-child{border-bottom:none}
@@ -90,7 +107,7 @@
   .dlegend .dl{display:flex;align-items:center;gap:8px;margin:6px 0}
   .dlegend i{width:11px;height:11px;border-radius:3px;flex:none}.dlegend b{margin-left:auto;padding-left:14px;font-weight:700}.dlegend small{color:var(--muted)}
   .slide{display:none}.slide.active{display:block}
-  @media(max-width:720px){.cards,.cards.c5{grid-template-columns:repeat(2,1fr)}.filters,.grid2,.chanbar{grid-template-columns:1fr}.tab span.txt{display:none}}
+  @media(max-width:720px){.cards,.cards.c5,.cards.c3acq{grid-template-columns:repeat(2,1fr)}.filters,.grid2,.chanbar,.chanbar.c3{grid-template-columns:1fr}.tab span.txt{display:none}}
 </style>
 </head>
 <body>
@@ -139,7 +156,7 @@
   <section class="slide" id="slide-gads">
     <div class="chanbar">
       <div class="field"><label>Campagne Google Ads</label><select id="gCampSel" class="big"></select><div class="hint" id="gCampHint">Filtre l'onglet sur une campagne (KPI, graphiques &amp; tableau).</div></div>
-      <div class="field"><label>&nbsp;</label><div class="hint" style="margin-top:12px">Le graphe « Conversions par type » reste au niveau compte (non filtrable par campagne).</div></div>
+      <div class="field"><label>Statut de diffusion</label><select id="gStatusSel" class="big"><option value="all">Toutes</option><option value="on">● Actives (en diffusion)</option><option value="off">● En pause / inactives</option></select><div class="hint">Filtre le <b>tableau des campagnes</b>. Le graphe « Conversions par type » reste au niveau compte.</div></div>
     </div>
     <div class="kpirow-label">KPI Business</div><div class="cards" id="g-kpi1"></div>
     <div class="kpirow-label">KPI Campagnes</div><div class="cards" id="g-kpi2"></div>
@@ -149,13 +166,15 @@
     </div>
     <div class="panel" id="gTypePanel"><h2>Conversions par type</h2><div class="psub">Demande de devis / contact / appels / infos + Mini-Pelle MQL &amp; Opportunité — stacked area (niveau compte)</div><div class="legend" id="gTypeLegend"></div><div class="chartwrap" id="gTypeWrap"><div id="gTypeChart"></div><div class="tooltip" id="gTypeTip"></div></div></div>
     <div class="panel"><h2>Performance par campagne</h2><div class="psub" id="gTableSub"></div><div class="tblwrap"><table id="g-table"></table></div></div>
+    <div class="panel" id="gAcqPanel"><h2>Coût d'acquisition par étape — réconciliation HubSpot</h2><div class="psub" id="gAcqSub"></div><div class="cards c3acq" id="gAcqCards"></div><div class="tblwrap"><table id="g-acq-table"></table></div><div class="cnote" id="gAcqNote"></div></div>
     <div class="panel methodo"><p class="mnote"><b>Note conversions Mini-Pelle :</b> le tracking Mini-Pelle MQL / Opportunité (funnel HubSpot renvoyé dans Google Ads) est actif depuis ~printemps 2026. La conversion <b>Mini-Pelle Client</b> n'a pas encore de conversion attribuée à Google. <b>ROAS</b> = valeur de conversion / investissement. Les tableaux reflètent la période affichée (mensuelle ou hebdo) et le filtre campagne.</p></div>
   </section>
 
   <section class="slide" id="slide-meta">
-    <div class="chanbar">
+    <div class="chanbar c3">
       <div class="field"><label>Campagne Meta Ads</label><select id="mCampSel" class="big"></select><div class="hint">Filtre l'onglet sur une campagne (KPI, graphiques, ad sets &amp; créas).</div></div>
-      <div class="field"><label>Nom de la créa</label><input id="mCreaSearch" class="big" type="text" placeholder="Rechercher une créa (ex : XN16, Devant forêt…)"><div class="hint">Filtre le tableau des créas par nom.</div></div>
+      <div class="field"><label>Nom de la créa</label><input id="mCreaSearch" class="big" type="text" list="mCreaList" autocomplete="off" placeholder="Taper ou choisir une créa (ex : XN16, Devant forêt…)"><datalist id="mCreaList"></datalist><div class="hint">Tapez pour rechercher, ou choisissez dans la liste déroulante.</div></div>
+      <div class="field"><label>Statut de diffusion</label><select id="mStatusSel" class="big"><option value="all">Toutes</option><option value="on">● Actives (en diffusion)</option><option value="off">● En pause / inactives</option></select><div class="hint">Filtre <b>campagnes, ad sets &amp; créas</b> selon l'état actuel dans Meta.</div></div>
     </div>
     <div class="kpirow-label">KPI Business</div><div class="cards" id="m-kpi1"></div>
     <div class="kpirow-label">KPI Campagnes</div><div class="cards c5" id="m-kpi2"></div>
@@ -164,12 +183,18 @@
       <div class="panel"><h2>Investissement &amp; CPL</h2><div class="psub" id="mCplSub"></div><div class="legend"><span><i style="background:#3E7CB1"></i>Investissement</span><span><i class="ln" style="background:#2FA37C"></i>CPL</span></div><div class="chartwrap" id="mCplWrap"><div id="mCplChart"></div><div class="tooltip" id="mCplTip"></div></div></div>
     </div>
     <div class="panel"><h2>Performance par campagne</h2><div class="psub" id="mTableSub"></div><div class="tblwrap"><table id="m-table"></table></div></div>
+    <div class="panel" id="mAcqPanel"><h2>Coût d'acquisition par étape — réconciliation HubSpot</h2><div class="psub" id="mAcqSub"></div><div class="cards c3acq" id="mAcqCards"></div><div class="tblwrap"><table id="m-acq-table"></table></div><div class="cnote" id="mAcqNote"></div></div>
     <div class="panel"><h2>Performance par ad set</h2><div class="psub">Ciblage : audiences, retargeting, look-alike, intérêts</div><div class="tblwrap"><table id="m-adset-table"></table></div></div>
     <div class="grid2">
       <div class="panel"><h2>Investissement par ad set</h2><div class="donutbox"><div id="m-donut-inv-svg"></div><div class="dlegend" id="m-donut-inv-leg"></div></div></div>
       <div class="panel"><h2>Demandes de devis par ad set</h2><div class="donutbox"><div id="m-donut-lead-svg"></div><div class="dlegend" id="m-donut-lead-leg"></div></div></div>
     </div>
     <div class="panel"><h2>Créas — détail type Meta Ads Manager</h2><div class="psub" id="mAdsSub">Statut, aperçu, dépense, résultats, coût/résultat, répétition, impressions, clics, CPC, CTR — vignettes Meta en direct (peuvent expirer sur un fichier figé)</div><div class="tblwrap"><table id="m-ads-table"></table></div></div>
+    <div class="panel" id="copyPanel"><h2>Comparaison des titres &amp; textes</h2><div class="psub" id="copySub">Regroupe les créas par titre (ou par texte principal) et compare le coût par résultat — pour repérer les angles qui convertissent le mieux. Respecte les filtres campagne &amp; statut ci-dessus.</div>
+      <div class="seg" id="copyToggle"><button class="segb active" data-c="t">Par titre</button><button class="segb" data-c="x">Par texte principal</button></div>
+      <div id="copyList" class="copylist"></div>
+      <div class="cnote" id="copyNote"></div>
+    </div>
     <div class="panel methodo"><p class="mnote"><b>À noter :</b> les « Demandes de devis » sont comptées par Meta (attribution plateforme) et diffèrent des leads Meta vus dans HubSpot. La <b>répétition</b> = impressions / portée (niveau compte). La pastille <b>statut</b> (● vert = diffusion active, gris = en pause) indique l'état actuel dans Meta, pour les campagnes, ad sets et créas. Le <b>coût par résultat</b> est coloré par tiers sur les lignes affichées (vert = les plus faibles, rouge = les plus élevés). <b>Cliquez sur les en-têtes de colonnes pour trier</b> (croissant / décroissant). Tables campagnes / ad sets / créas reflètent la période affichée et les filtres.</p></div>
   </section>
 
@@ -183,7 +208,10 @@ const C={slate:'#3A4A54',orange:'#EE7A0C',amber:'#F6B15A',green:'#2FA37C',blue:'
 const CANAL_CFG=[{key:'offline',color:'#AEB6BF',short:'Sources hors ligne'},{key:'direct',color:'#7A5CC0',short:'Trafic direct'},{key:'organic',color:'#2FA37C',short:'SEO (recherche naturelle)'},{key:'paidsearch',color:'#EE7A0C',short:'Google Ads'},{key:'paidsocial',color:'#3E7CB1',short:'Meta Ads'},{key:'othercamp',color:'#F6B15A',short:'Autres campagnes'},{key:'social',color:'#4FB0C6',short:'Réseau social organique'},{key:'referrals',color:'#D9736B',short:'Renvois'},{key:'aireferrals',color:'#C7B84F',short:'Renvois IA'}];
 const SRC_ORDER=['all','organic','paidsearch','paidsocial','direct','offline','othercamp','social','referrals','aireferrals'];
 let gran='month', source='all', tab='hubspot', rangeStart=0, rangeEnd=0;
-let gCamp='all', mCamp='all', mCrea='';
+let gCamp='all', mCamp='all', mCrea='', mStatus='all', gStatus='all', copyMode='t';
+const COPY_MINRES=8;
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const passStatus=(st,mode)=>{if(mode==='all')return true;const on=isOn(st||'');return mode==='on'?on:!on;};
 let LABELS,FUNNEL,GADS,META,N;
 function setActive(){if(gran==='month'){LABELS=LABELS_M;FUNNEL=FUNNEL_M;GADS=GADS_M;META=META_M;}else{LABELS=LABELS_W;FUNNEL=FUNNEL_W;GADS=GADS_W;META=META_W;}N=LABELS.length;}
 const sl=a=>(a||[]).slice(rangeStart,rangeEnd+1);
@@ -201,7 +229,7 @@ const rangeLen=()=>rangeEnd-rangeStart+1;
 // ============ CHARTS ============
 function niceMax(m){if(m<=0)return 10;const p=Math.pow(10,Math.floor(Math.log10(m)));const r=m/p;let n=r<=1?1:r<=1.5?1.5:r<=2?2:r<=3?3:r<=5?5:10;return n*p;}
 const W=1000,H=290,ML=54,MR=14,MT=12,MB=38;
-function xLabels(s,labels,px){labels.forEach((lab,i)=>s.push('<text x="'+px(i).toFixed(1)+'" y="'+(H-MB+18)+'" text-anchor="middle" font-size="10" fill="#6B7785">'+lab+'</text>'));}
+function xLabels(s,labels,px){labels.forEach((lab,i)=>s.push('<text x="'+px(i).toFixed(1)+'" y="'+(H-MB+18)+'" text-anchor="middle" font-size="12" fill="#6B7785">'+lab+'</text>'));}
 function areaChart(elId,labels,series){
   const ph=H-MT-MB,pw=W-ML-MR,n=labels.length;
   const totals=labels.map((_,i)=>series.reduce((a,se)=>a+se.data[i],0));
@@ -221,13 +249,13 @@ function comboChart(elId,labels,bar,line){
   const barMax=niceMax(Math.max(...bar.data,1)),lineMax=niceMax(Math.max(...line.data,1));
   const gw=pw/n,bw=Math.min(gw*0.55,34),px=i=>ml+gw*i+gw/2,pyB=v=>MT+ph-ph*v/barMax,pyL=v=>MT+ph-ph*v/lineMax;
   let s=['<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" font-family="inherit">'];
-  for(let i=0;i<=4;i++){const y=MT+ph-(ph*i/4);s.push('<line x1="'+ml+'" y1="'+y+'" x2="'+(W-mr)+'" y2="'+y+'" stroke="#EEF1F4"/>');s.push('<text x="'+(ml-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10.5" fill="#9AA5B1">'+bar.fmtAxis(barMax*i/4)+'</text>');s.push('<text x="'+(W-mr+8)+'" y="'+(y+4)+'" text-anchor="start" font-size="10.5" fill="#9AA5B1">'+line.fmtAxis(lineMax*i/4)+'</text>');}
+  for(let i=0;i<=4;i++){const y=MT+ph-(ph*i/4);s.push('<line x1="'+ml+'" y1="'+y+'" x2="'+(W-mr)+'" y2="'+y+'" stroke="#EEF1F4"/>');s.push('<text x="'+(ml-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="12" fill="#9AA5B1">'+bar.fmtAxis(barMax*i/4)+'</text>');s.push('<text x="'+(W-mr+8)+'" y="'+(y+4)+'" text-anchor="start" font-size="12" fill="#9AA5B1">'+line.fmtAxis(lineMax*i/4)+'</text>');}
   bar.data.forEach((v,i)=>{const h=ph*v/barMax;s.push('<rect x="'+(px(i)-bw/2).toFixed(1)+'" y="'+pyB(v).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,h).toFixed(1)+'" rx="2.5" fill="'+bar.color+'" fill-opacity="0.9"/>');});
   const pts=line.data.map((v,i)=>px(i).toFixed(1)+','+pyL(v).toFixed(1));s.push('<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+line.color+'" stroke-width="2.4"/>');
   line.data.forEach((v,i)=>s.push('<circle cx="'+px(i).toFixed(1)+'" cy="'+pyL(v).toFixed(1)+'" r="3" fill="'+line.color+'"/>'));
   // datalabels sur la ligne (valeurs affichées en permanence)
   const dfmt=line.dlFmt||line.fmt||(v=>fmt(v));
-  line.data.forEach((v,i)=>{let y=pyL(v)-9;if(y<MT+9)y=pyL(v)+15;s.push('<text x="'+px(i).toFixed(1)+'" y="'+y.toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" fill="'+line.color+'" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">'+dfmt(v)+'</text>');});
+  line.data.forEach((v,i)=>{let y=pyL(v)-11;if(y<MT+11)y=pyL(v)+18;s.push('<text x="'+px(i).toFixed(1)+'" y="'+y.toFixed(1)+'" text-anchor="middle" font-size="13.5" font-weight="800" fill="'+line.color+'" style="paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round">'+dfmt(v)+'</text>');});
   xLabels(s,labels,px);s.push('<line class="vline" id="'+elId+'-vl" x1="0" y1="'+MT+'" x2="0" y2="'+(MT+ph)+'" style="opacity:0"/></svg>');
   document.getElementById(elId).innerHTML=s.join('');
   return {labels,series:[bar,line],showTotal:false,geom:{first:ml+gw/2,span:gw}};
@@ -315,12 +343,14 @@ function renderGads(){
   if(gCamp!=='all')cs=cs.filter(c=>c.name===gCamp);
   const gst=(GADS.campStatus)||{};
   let grows=cs.map(c=>({name:c.name,cost:c.cost,conv:c.conv,cpr:(c.conv?c.cost/c.conv:0),value:c.value,roas:(c.cost?c.value/c.cost:0)}));
+  if(gStatus!=='all')grows=grows.filter(r=>passStatus(gst[r.name],gStatus));
   const gth=cprThresholds(grows.map(r=>r.cpr));
   grows=sortRows(grows,gTableSort);
   let h='<thead><tr>'+thS(gTableSort,'name','Campagne')+thS(gTableSort,'cost','Investissement')+thS(gTableSort,'conv','Conversions')+thS(gTableSort,'cpr','Coût/conv.')+thS(gTableSort,'value','Valeur (CA)')+thS(gTableSort,'roas','ROAS')+'</tr></thead><tbody>';let Tc=0,Tv=0,Tval=0;
   grows.forEach(c=>{Tc+=c.cost;Tv+=c.conv;Tval+=c.value;h+='<tr><td>'+nameCell(gst[c.name],c.name)+'</td><td>'+eur(c.cost)+'</td><td>'+fmt(c.conv)+'</td><td>'+cprCell(c.cpr,gth)+'</td><td>'+eur(c.value)+'</td><td><b style="color:'+(c.roas>=1.5?'#2FA37C':c.roas>=1?'#C58A00':'#C0392B')+'">'+c.roas.toFixed(2)+'</b></td></tr>';});
   h+='<tr class="total"><td>Total</td><td>'+eur(Tc)+'</td><td>'+fmt(Tv)+'</td><td>'+(Tv?eur1(Tc/Tv):'—')+'</td><td>'+eur(Tval)+'</td><td>'+(Tc?(Tval/Tc).toFixed(2):'—')+'</td></tr></tbody>';
   document.getElementById('g-table').innerHTML=h;
+  renderAcq('g');
 }
 
 // ============ RENDER : META ADS ============
@@ -349,6 +379,7 @@ function renderMeta(){
   if(mCamp!=='all')cs=cs.filter(c=>c.name===mCamp);
   const mcst=(META.campStatus)||{};
   let mrows=cs.map(c=>({name:c.name,cost:c.cost,leads:c.leads,cpr:(c.leads?c.cost/c.leads:0),impr:c.impr,clicks:c.clicks}));
+  if(mStatus!=='all')mrows=mrows.filter(r=>passStatus(mcst[r.name],mStatus));
   const mth=cprThresholds(mrows.map(r=>r.cpr));
   mrows=sortRows(mrows,mTableSort);
   let h='<thead><tr>'+thS(mTableSort,'name','Campagne')+thS(mTableSort,'cost','Investissement')+thS(mTableSort,'leads','Demandes de devis')+thS(mTableSort,'cpr','CPL')+thS(mTableSort,'impr','Impressions')+thS(mTableSort,'clicks','Clics')+'</tr></thead><tbody>';let Tc=0,Tl=0,Ti=0,Tk=0;
@@ -360,6 +391,7 @@ function renderMeta(){
   let sets=(META.adsetsP?aggRangeF(META.adsetsP,['cost','leads'],setPred):META.adsets.slice()).sort((a,b)=>b.cost-a.cost);
   const mast=(META.adsetStatus)||{};
   let arows=sets.map(a=>({name:a.name,camp:(a.campName||a.camp),cost:a.cost,leads:a.leads,cpr:(a.leads?a.cost/a.leads:0),_st:mast[a.name+'||'+(a.campName||'')]}));
+  if(mStatus!=='all')arows=arows.filter(r=>passStatus(r._st,mStatus));
   const ath=cprThresholds(arows.map(r=>r.cpr));
   arows=sortRows(arows,mAdsetSort);
   let ht='<thead><tr>'+thS(mAdsetSort,'name','Ad set')+thS(mAdsetSort,'camp','Campagne')+thS(mAdsetSort,'cost','Investissement')+thS(mAdsetSort,'leads','Demandes de devis')+thS(mAdsetSort,'cpr','CPL')+'</tr></thead><tbody>';let Sc=0,Sl=0;
@@ -371,19 +403,25 @@ function renderMeta(){
   document.getElementById('m-donut-inv-svg').innerHTML=donutSVG(invItems);document.getElementById('m-donut-inv-leg').innerHTML=donutLegend(invItems,eur);
   document.getElementById('m-donut-lead-svg').innerHTML=donutSVG(leadItems);document.getElementById('m-donut-lead-leg').innerHTML=donutLegend(leadItems,fmt);
   renderMetaAds();
+  renderCopy();
+  renderAcq('m');
 }
+function fillCreaDatalist(names){const dl=document.getElementById('mCreaList');if(!dl)return;const uniq=[...new Set(names)].sort((a,b)=>a.localeCompare(b,'fr'));const sig=mCamp+'|'+uniq.join('¦');if(dl.dataset.sig===sig)return;dl.dataset.sig=sig;dl.innerHTML=uniq.map(n=>'<option value="'+n.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"></option>').join('');}
 function renderMetaAds(){
   const adPred=mCamp==='all'?null:(e=>e.camp===mCamp);
   const hasRich=META.adsP&&META.adsP.some(p=>p&&p.length&&('impr' in p[0]));
   let ads=(META.adsP?aggRangeF(META.adsP,hasRich?['cost','leads','impr','clicks','reach']:['cost','leads'],adPred):(META.ads||[]).slice());
+  const th=(META.adThumbs)||{},stt=(META.adStatus)||{};
+  fillCreaDatalist(ads.map(a=>a.name));
   const q=(mCrea||'').trim().toLowerCase();
   if(q)ads=ads.filter(a=>a.name.toLowerCase().includes(q));
-  const th=(META.adThumbs)||{},stt=(META.adStatus)||{};
+  if(mStatus!=='all')ads=ads.filter(a=>{const on=isOn(stt[a.name]||'');return mStatus==='on'?on:!on;});
   let rows=ads.map(a=>{const impr=a.impr||0,clicks=a.clicks||0,reach=a.reach||0,leads=a.leads||0,cost=a.cost||0;
     return {name:a.name,status:stt[a.name]||'',cost,leads,cpr:(leads?cost/leads:0),freq:(reach?impr/reach:0),impr,clicks,cpc:(clicks?cost/clicks:0),ctr:(impr?clicks/impr*100:0),reach};});
   const cth=cprThresholds(rows.map(r=>r.cpr));
   rows=sortRows(rows,adsSort);
-  document.getElementById('mAdsSub').textContent='Créas sur la période ('+rangeLen()+' '+unit()+')'+(mCamp!=='all'?' · '+mCamp:'')+(q?' · « '+mCrea+' »':'')+' — '+rows.length+' créa(s)';
+  const stLbl=mStatus==='on'?' · actives':(mStatus==='off'?' · en pause':'');
+  document.getElementById('mAdsSub').textContent='Créas sur la période ('+rangeLen()+' '+unit()+')'+(mCamp!=='all'?' · '+mCamp:'')+(q?' · « '+mCrea+' »':'')+stLbl+' — '+rows.length+' créa(s)';
   let h='<thead><tr>'+thS(adsSort,'name','Publicité','acol')+thS(adsSort,'cost','Dépense')+thS(adsSort,'leads','Résultats')+thS(adsSort,'cpr','Coût/résultat')+thS(adsSort,'freq','Répétition')+thS(adsSort,'impr','Impressions')+thS(adsSort,'clicks','Clics')+thS(adsSort,'cpc','CPC')+thS(adsSort,'ctr','CTR')+'</tr></thead><tbody>';
   let Tc=0,Tl=0,Ti=0,Tk=0,Tr=0;
   rows.forEach(a=>{
@@ -398,6 +436,57 @@ function renderMetaAds(){
   const fq=(Tr?Ti/Tr:0);
   h+='<tr class="total"><td class="acol">Total ('+rows.length+')</td><td>'+eur(Tc)+'</td><td>'+fmt(Tl)+'</td><td>'+(Tl?eur1(Tc/Tl):'—')+'</td><td>'+(hasRich&&Tr?num2(fq):'—')+'</td><td>'+(hasRich?fmt(Ti):'—')+'</td><td>'+(hasRich?fmt(Tk):'—')+'</td><td>'+(hasRich&&Tk?eur1(Tc/Tk):'—')+'</td><td>'+(hasRich&&Ti?pct(Tk/Ti*100):'—')+'</td></tr></tbody>';
   document.getElementById('m-ads-table').innerHTML=h;
+}
+function renderCopy(){
+  const panel=document.getElementById('copyPanel'); if(!panel)return;
+  const copy=META.adCopy;
+  if(!copy||!META.adsP){panel.style.display='none';return;}
+  panel.style.display='';
+  const adPred=mCamp==='all'?null:(e=>e.camp===mCamp);
+  const stt=(META.adStatus)||{};
+  let ads=aggRangeF(META.adsP,['cost','leads','impr','clicks'],adPred);
+  if(mStatus!=='all')ads=ads.filter(a=>passStatus(stt[a.name],mStatus));
+  const g={};
+  ads.forEach(a=>{const c=copy[a.name]||{};const raw=copyMode==='t'?(c.t||''):(c.x||'');const key=raw||('(sans '+(copyMode==='t'?'titre':'texte')+')');
+    const o=g[key]||(g[key]={key,empty:!raw,cost:0,leads:0,impr:0,clicks:0,n:0,nt:0,nb:0});
+    o.cost+=a.cost;o.leads+=a.leads;o.impr+=a.impr;o.clicks+=a.clicks;o.n++;o.nt=Math.max(o.nt,c.nt||0);o.nb=Math.max(o.nb,c.nb||0);});
+  let rows=Object.values(g).map(o=>Object.assign(o,{cpr:(o.leads?o.cost/o.leads:0),ctr:(o.impr?o.clicks/o.impr*100:0)}));
+  rows.sort((a,b)=>(a.empty-b.empty)||(b.cost-a.cost));
+  const maxCost=Math.max(1,...rows.map(r=>r.cost));
+  const cth=cprThresholds(rows.filter(r=>r.leads>=COPY_MINRES).map(r=>r.cpr));
+  const html=rows.map(r=>{
+    const w=(r.cost/maxCost*100).toFixed(1);
+    const low=r.leads<COPY_MINRES;
+    const pill=r.leads?(low?'<span class="cprpill cpr-lowvol" title="Moins de '+COPY_MINRES+' résultats — fiabilité limitée">'+eur1(r.cpr)+'</span>':cprCell(r.cpr,cth)):'<span class="cprpill cpr-lowvol">—</span>';
+    const varn=(copyMode==='t'&&r.nt>1)?' · '+r.nt+' titres testés par Meta':((copyMode==='x'&&r.nb>1)?' · '+r.nb+' textes testés':'');
+    return '<div class="crow'+(r.empty?' empty':'')+'"><div class="cbar" style="width:'+w+'%"></div>'
+      +'<div class="cinfo"><div class="ctxt" title="'+esc(r.key)+'">'+esc(r.key)+'</div>'
+      +'<div class="cmeta">'+r.n+' créa'+(r.n>1?'s':'')+' · '+eur(r.cost)+' · '+fmt(r.leads)+' rés. · CTR '+(r.impr?pct(r.ctr):'—')+varn+'</div></div>'
+      +'<div class="cpr">'+pill+'</div></div>';
+  }).join('');
+  document.getElementById('copyList').innerHTML=html||'<div class="cnote">Aucune créa avec dépense sur cette période / ce filtre.</div>';
+  const nEmpty=rows.filter(r=>r.empty).reduce((s,r)=>s+r.n,0);
+  document.getElementById('copySub').textContent='Créas regroupées par '+(copyMode==='t'?'titre':'texte principal')+' sur la période ('+rangeLen()+' '+unit()+')'+(mCamp!=='all'?' · '+mCamp:'')+(mStatus==='on'?' · actives':(mStatus==='off'?' · en pause':''))+'.';
+  document.getElementById('copyNote').innerHTML='Barre = part du budget · pastille = coût/résultat (vert = meilleur, rouge = plus cher). « à confirmer » = moins de '+COPY_MINRES+' résultats.'+(nEmpty?' · '+nEmpty+' créa(s) sans '+(copyMode==='t'?'titre':'texte')+' renseigné.':'')+'<br><b>Test A/B propre :</b> même visuel + un seul titre/texte par créa dans le même ad set.';
+}
+function renderAcq(tab){
+  const D=(tab==='g'?GADS:META), chan=(tab==='g'?'Google Ads':'Meta Ads');
+  const panel=document.getElementById(tab+'AcqPanel'); if(!panel)return;
+  const acq=D.acq;
+  if(gran!=='month'||!acq){panel.style.display='none';return;}
+  panel.style.display='';
+  const L=sl(LABELS),inv=sl(D.cost),mql=sl(acq.mql),sql=sl(acq.sql),sale=sl(acq.sale);
+  const Ti=sum(inv),Tm=sum(mql),Ts=sum(sql),Tv=sum(sale);
+  document.getElementById(tab+'AcqSub').textContent='Investissement '+chan+' rapproché du statut des leads par mois d\'acquisition — période affichée ('+rangeLen()+' mois)';
+  document.getElementById(tab+'AcqCards').innerHTML=
+     card('k1',Tm?eur1(Ti/Tm):'—','Coût / MQL',fmt(Tm)+' MQL sur la période')
+    +card('k3',Ts?eur1(Ti/Ts):'—','Coût / SQL (Opportunité)',fmt(Ts)+' opportunité'+(Ts>1?'s':''))
+    +card('k4',Tv?eur(Ti/Tv):'—','Coût / Vente',Tv?(fmt(Tv)+' vente'+(Tv>1?'s':'')):'0 vente attribuée');
+  let h='<thead><tr><th>Mois</th><th>Invest.</th><th>MQL</th><th>€/MQL</th><th>SQL (Opp.)</th><th>€/SQL</th><th>Ventes</th><th>€/Vente</th></tr></thead><tbody>';
+  L.forEach((lab,i)=>{h+='<tr><td>'+lab+'</td><td>'+eur(inv[i])+'</td><td>'+fmt(mql[i])+'</td><td>'+(mql[i]?eur1(inv[i]/mql[i]):'—')+'</td><td>'+fmt(sql[i])+'</td><td>'+(sql[i]?eur1(inv[i]/sql[i]):'—')+'</td><td>'+fmt(sale[i])+'</td><td>'+(sale[i]?eur(inv[i]/sale[i]):'—')+'</td></tr>';});
+  h+='<tr class="total"><td>Total</td><td>'+eur(Ti)+'</td><td>'+fmt(Tm)+'</td><td>'+(Tm?eur1(Ti/Tm):'—')+'</td><td>'+fmt(Ts)+'</td><td>'+(Ts?eur1(Ti/Ts):'—')+'</td><td>'+fmt(Tv)+'</td><td>'+(Tv?eur(Ti/Tv):'—')+'</td></tr></tbody>';
+  document.getElementById(tab+'-acq-table').innerHTML=h;
+  document.getElementById(tab+'AcqNote').innerHTML='<b>Lecture cohorte :</b> chaque lead est compté au mois où il est devenu lead, puis suivi jusqu\'à MQL / Opportunité / Vente. Le coût = investissement '+chan+' du mois ÷ nombre de leads du mois ayant atteint l\'étape. « SQL » = étape <b>Opportunité</b> (le statut « sales qualified » n\'est pas utilisé sur les canaux payants). <b>Les mois récents ne sont pas mûrs</b> : le cycle de décision est long, donc les ventes (et une partie des opportunités) arriveront plus tard — le €/Vente des derniers mois est volontairement « — ».';
 }
 function donutSVG(items){const total=items.reduce((a,x)=>a+x.value,0)||1;let a=-Math.PI/2;const cx=100,cy=100,R=84,IR=52;let s='<svg viewBox="0 0 200 200" width="168" height="168">';items.forEach(it=>{let frac=it.value/total;let a1=a+frac*2*Math.PI;if(frac>=0.9999)a1=a+2*Math.PI-0.0001;const x0=cx+R*Math.cos(a),y0=cy+R*Math.sin(a),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1),xi1=cx+IR*Math.cos(a1),yi1=cy+IR*Math.sin(a1),xi0=cx+IR*Math.cos(a),yi0=cy+IR*Math.sin(a),lg=frac>0.5?1:0;s+='<path d="M'+x0.toFixed(2)+' '+y0.toFixed(2)+' A'+R+' '+R+' 0 '+lg+' 1 '+x1.toFixed(2)+' '+y1.toFixed(2)+' L'+xi1.toFixed(2)+' '+yi1.toFixed(2)+' A'+IR+' '+IR+' 0 '+lg+' 0 '+xi0.toFixed(2)+' '+yi0.toFixed(2)+' Z" fill="'+it.color+'"/>';a=a1;});return s+'</svg>';}
 function donutLegend(items,vf){const total=items.reduce((a,x)=>a+x.value,0)||1;return items.map(it=>'<div class="dl"><i style="background:'+it.color+'"></i><span>'+it.label+'</span><b>'+vf(it.value)+' <small>('+(it.value/total*100).toFixed(0)+'%)</small></b></div>').join('');}
@@ -434,6 +523,9 @@ document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{doc
 document.getElementById('gCampSel').addEventListener('change',e=>{gCamp=e.target.value;render();});
 document.getElementById('mCampSel').addEventListener('change',e=>{mCamp=e.target.value;render();});
 document.getElementById('mCreaSearch').addEventListener('input',e=>{mCrea=e.target.value;renderMetaAds();});
+document.getElementById('mStatusSel').addEventListener('change',e=>{mStatus=e.target.value;renderMeta();});
+document.getElementById('gStatusSel').addEventListener('change',e=>{gStatus=e.target.value;renderGads();});
+document.querySelectorAll('#copyToggle .segb').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#copyToggle .segb').forEach(x=>x.classList.remove('active'));b.classList.add('active');copyMode=b.dataset.c;renderCopy();}));
 const sourceSel=document.getElementById('sourceSel');
 sourceSel.innerHTML=SRC_ORDER.map(kk=>'<option value="'+kk+'">'+(kk==='all'?'Tous les canaux (HubSpot global)':FUNNEL_M[kk].label)+'</option>').join('');
 const campSel=document.getElementById('campSel'),campHint=document.getElementById('campHint'),srcHint=document.getElementById('sourceHint');
