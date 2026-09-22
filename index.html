@@ -32,6 +32,17 @@
   select.big,input.big{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;color:var(--ink);background:#fff;font-weight:600;cursor:pointer}
   input.big{cursor:text;font-weight:500}
   select.big:disabled{background:#F4F5F7;color:#9AA5B1;cursor:not-allowed}
+  .ms{position:relative}
+  .ms-btn{width:100%;text-align:left;padding:10px 34px 10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;font-weight:600;color:var(--ink);background:#fff;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+  .ms-btn::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#9AA5B1;font-size:11px}
+  .ms.open .ms-btn{border-color:#B9C4CE;box-shadow:0 0 0 3px rgba(58,74,84,.08)}
+  .ms-menu{display:none;position:absolute;z-index:30;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.14);max-height:300px;overflow:auto;padding:6px}
+  .ms.open .ms-menu{display:block}
+  .ms .ms-opt{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:7px;font-size:13px;cursor:pointer;font-weight:600;color:var(--ink);text-transform:none;letter-spacing:0}
+  .ms-opt:hover{background:#F4F6F8}
+  .ms-opt input{width:15px;height:15px;flex:none;accent-color:var(--anthracite);cursor:pointer}
+  .ms-opt span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ms-opt.all{border-bottom:1px solid var(--line);border-radius:0;margin:0 0 4px;padding-bottom:9px}
   .hint{font-size:11px;color:var(--muted);margin-top:6px}.hint b{color:var(--orange-d)}
   .chanbar{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:16px}
   .chanbar.c3{grid-template-columns:1.2fr 1.6fr 1fr}
@@ -155,7 +166,7 @@
 
   <section class="slide" id="slide-gads">
     <div class="chanbar">
-      <div class="field"><label>Campagne Google Ads</label><select id="gCampSel" class="big"></select><div class="hint" id="gCampHint">Filtre l'onglet sur une campagne (KPI, graphiques &amp; tableau).</div></div>
+      <div class="field"><label>Campagne(s) Google Ads</label><div class="ms" id="gCampMs"><button type="button" class="ms-btn" id="gCampBtn">Toutes les campagnes</button><div class="ms-menu" id="gCampMenu"></div></div><div class="hint" id="gCampHint">Coche une ou plusieurs campagnes (KPI, graphiques &amp; tableau). Vide = toutes.</div></div>
       <div class="field"><label>Statut de diffusion</label><select id="gStatusSel" class="big"><option value="all">Toutes</option><option value="on">● Actives (en diffusion)</option><option value="off">● En pause / inactives</option></select><div class="hint">Filtre le <b>tableau des campagnes</b>. Le graphe « Conversions par type » reste au niveau compte.</div></div>
     </div>
     <div class="kpirow-label">KPI Business</div><div class="cards" id="g-kpi1"></div>
@@ -172,7 +183,7 @@
 
   <section class="slide" id="slide-meta">
     <div class="chanbar c3">
-      <div class="field"><label>Campagne Meta Ads</label><select id="mCampSel" class="big"></select><div class="hint">Filtre l'onglet sur une campagne (KPI, graphiques, ad sets &amp; créas).</div></div>
+      <div class="field"><label>Campagne(s) Meta Ads</label><div class="ms" id="mCampMs"><button type="button" class="ms-btn" id="mCampBtn">Toutes les campagnes</button><div class="ms-menu" id="mCampMenu"></div></div><div class="hint">Coche une ou plusieurs campagnes (KPI, graphiques, ad sets &amp; créas). Vide = toutes.</div></div>
       <div class="field"><label>Nom de la créa</label><input id="mCreaSearch" class="big" type="text" list="mCreaList" autocomplete="off" placeholder="Taper ou choisir une créa (ex : XN16, Devant forêt…)"><datalist id="mCreaList"></datalist><div class="hint">Tapez pour rechercher, ou choisissez dans la liste déroulante.</div></div>
       <div class="field"><label>Statut de diffusion</label><select id="mStatusSel" class="big"><option value="all">Toutes</option><option value="on">● Actives (en diffusion)</option><option value="off">● En pause / inactives</option></select><div class="hint">Filtre <b>campagnes, ad sets &amp; créas</b> selon l'état actuel dans Meta.</div></div>
     </div>
@@ -208,7 +219,8 @@ const C={slate:'#3A4A54',orange:'#EE7A0C',amber:'#F6B15A',green:'#2FA37C',blue:'
 const CANAL_CFG=[{key:'offline',color:'#AEB6BF',short:'Sources hors ligne'},{key:'direct',color:'#7A5CC0',short:'Trafic direct'},{key:'organic',color:'#2FA37C',short:'SEO (recherche naturelle)'},{key:'paidsearch',color:'#EE7A0C',short:'Google Ads'},{key:'paidsocial',color:'#3E7CB1',short:'Meta Ads'},{key:'othercamp',color:'#F6B15A',short:'Autres campagnes'},{key:'social',color:'#4FB0C6',short:'Réseau social organique'},{key:'referrals',color:'#D9736B',short:'Renvois'},{key:'aireferrals',color:'#C7B84F',short:'Renvois IA'}];
 const SRC_ORDER=['all','organic','paidsearch','paidsocial','direct','offline','othercamp','social','referrals','aireferrals'];
 let gran='month', source='all', tab='hubspot', rangeStart=0, rangeEnd=0;
-let gCamp='all', mCamp='all', mCrea='', mStatus='all', gStatus='all', copyMode='t';
+let gCamp=[], mCamp=[], mCrea='', mStatus='all', gStatus='all', copyMode='t';
+const campLbl=sel=>!sel.length?'':(sel.length===1?' · '+sel[0]:' · '+sel.length+' campagnes');
 const COPY_MINRES=8;
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const passStatus=(st,mode)=>{if(mode==='all')return true;const on=isOn(st||'');return mode==='on'?on:!on;};
@@ -313,34 +325,34 @@ function renderHubSpot(){
 }
 
 // ============ RENDER : GOOGLE ADS ============
-function gadsCampSeries(){ // renvoie {cost,conv,clicks,impr} sur N périodes selon gCamp
-  if(gCamp==='all')return {cost:GADS.cost,conv:GADS.conv,clicks:GADS.clicks,impr:GADS.impr};
+function gadsCampSeries(){ // renvoie {cost,conv,clicks,impr} sur N périodes selon gCamp (multi ; vide = tout)
+  if(!gCamp.length)return {cost:GADS.cost,conv:GADS.conv,clicks:GADS.clicks,impr:GADS.impr};
   const cost=[],conv=[],clicks=[],impr=[];
-  for(let i=0;i<N;i++){const e=(GADS.campaignsP[i]||[]).find(c=>c.name===gCamp)||{};cost.push(e.cost||0);conv.push(e.conv||0);clicks.push(e.clicks||0);impr.push(e.impr||0);}
+  for(let i=0;i<N;i++){let c=0,cv=0,k=0,im=0;(GADS.campaignsP[i]||[]).forEach(e=>{if(gCamp.includes(e.name)){c+=e.cost||0;cv+=e.conv||0;k+=e.clicks||0;im+=e.impr||0;}});cost.push(c);conv.push(cv);clicks.push(k);impr.push(im);}
   return {cost,conv,clicks,impr};
 }
 function renderGads(){
   const S=gadsCampSeries();
   const L=sl(LABELS),cost=sl(S.cost),conv=sl(S.conv),clicks=sl(S.clicks),impr=sl(S.impr);
   const tc=sum(cost),tv=sum(conv),tk=sum(clicks),ti=sum(impr);const cpl=tv?tc/tv:0,ctr=ti?tk/ti*100:0,cpc=tk?tc/tk:0,convr=tk?tv/tk*100:0;
-  const foot=rangeLen()+' '+unit()+(gCamp!=='all'?' · '+gCamp:'');
+  const foot=rangeLen()+' '+unit()+campLbl(gCamp);
   document.getElementById('g-kpi1').innerHTML=card('k2',eur(tc),'Investissement',foot)+card('k1',fmt(tv),'Conversions','')+card('k3',eur1(cpl),'CPL','coût par conversion')+card('k4',pct(convr),'Taux de conversion','conv. / clic');
   document.getElementById('g-kpi2').innerHTML=card('kc',fmt(ti),'Impressions','')+card('kc',fmt(tk),'Clics','')+card('kc',eur1(cpc),'CPC','')+card('kc',pct(ctr),'CTR','');
-  const sub=(gran==='month'?'par mois':'par semaine')+(gCamp!=='all'?' · '+gCamp:'');document.getElementById('gConvSub').textContent=sub;document.getElementById('gCplSub').textContent=sub;
+  const sub=(gran==='month'?'par mois':'par semaine')+campLbl(gCamp);document.getElementById('gConvSub').textContent=sub;document.getElementById('gCplSub').textContent=sub;
   const cplSeries=cost.map((c,i)=>conv[i]?c/conv[i]:0);
   attachTip('gConvWrap','gConvChart','gConvTip',comboChart('gConvChart',L,{name:'Investissement',color:C.orange,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'Conversions',color:C.slate,data:conv,fmt:fmt,fmtAxis:v=>Math.round(v),dlFmt:v=>fmt(v)}));
   attachTip('gCplWrap','gCplChart','gCplTip',comboChart('gCplChart',L,{name:'Investissement',color:C.orange,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'CPL',color:C.green,data:cplSeries,fmt:eur1,fmtAxis:v=>Math.round(v)+'€',dlFmt:v=>eur1(v)}));
   // Conversions par type : niveau compte, masqué si une campagne est filtrée
   const typePanel=document.getElementById('gTypePanel');
-  if(gCamp!=='all'){typePanel.style.display='none';}
+  if(gCamp.length){typePanel.style.display='none';}
   else{typePanel.style.display='';
     const types=[{name:'Demande de contact',color:'#3A4A54',data:sl(GADS.contact)},{name:'Demande de devis',color:'#EE7A0C',data:sl(GADS.devis)},{name:'Appels +20s',color:'#F6B15A',data:sl(GADS.appels)},{name:'Demande d\'infos',color:'#AEB6BF',data:sl(GADS.infos)},{name:'Mini-Pelle MQL',color:'#2FA37C',data:sl(GADS.mql)},{name:'Mini-Pelle Opportunité',color:'#3E7CB1',data:sl(GADS.opp)}];
     types.forEach(t=>t.fmt=fmt);
     document.getElementById('gTypeLegend').innerHTML=types.map(t=>'<span><i style="background:'+t.color+'"></i>'+t.name+'</span>').join('');
     attachTip('gTypeWrap','gTypeChart','gTypeTip',areaChart('gTypeChart',L,types));}
-  document.getElementById('gTableSub').textContent='Investissement, conversions, coût/conv., valeur (CA) et ROAS — période affichée ('+rangeLen()+' '+unit()+')'+(gCamp!=='all'?' · '+gCamp:'');
+  document.getElementById('gTableSub').textContent='Investissement, conversions, coût/conv., valeur (CA) et ROAS — période affichée ('+rangeLen()+' '+unit()+')'+campLbl(gCamp);
   let cs=(GADS.campaignsP?aggRange(GADS.campaignsP,['cost','conv','value','clicks','impr']):GADS.campaigns.slice());
-  if(gCamp!=='all')cs=cs.filter(c=>c.name===gCamp);
+  if(gCamp.length)cs=cs.filter(c=>gCamp.includes(c.name));
   const gst=(GADS.campStatus)||{};
   let grows=cs.map(c=>({name:c.name,cost:c.cost,conv:c.conv,cpr:(c.conv?c.cost/c.conv:0),value:c.value,roas:(c.cost?c.value/c.cost:0)}));
   if(gStatus!=='all')grows=grows.filter(r=>passStatus(gst[r.name],gStatus));
@@ -355,9 +367,9 @@ function renderGads(){
 
 // ============ RENDER : META ADS ============
 function metaCampSeries(){
-  if(mCamp==='all')return {cost:META.cost,leads:META.leads,clicks:META.clicks,impr:META.impr};
+  if(!mCamp.length)return {cost:META.cost,leads:META.leads,clicks:META.clicks,impr:META.impr};
   const cost=[],leads=[],clicks=[],impr=[];
-  for(let i=0;i<N;i++){const e=(META.campaignsP[i]||[]).find(c=>c.name===mCamp)||{};cost.push(e.cost||0);leads.push(e.leads||0);clicks.push(e.clicks||0);impr.push(e.impr||0);}
+  for(let i=0;i<N;i++){let c=0,l=0,k=0,im=0;(META.campaignsP[i]||[]).forEach(e=>{if(mCamp.includes(e.name)){c+=e.cost||0;l+=e.leads||0;k+=e.clicks||0;im+=e.impr||0;}});cost.push(c);leads.push(l);clicks.push(k);impr.push(im);}
   return {cost,leads,clicks,impr};
 }
 function renderMeta(){
@@ -367,16 +379,16 @@ function renderMeta(){
   // répétition (compte, non filtrable par campagne car reach = niveau compte)
   const hasReach=Array.isArray(META.reach);
   const reachRange=hasReach?sum(sl(META.reach)):0;const imprAcct=sum(sl(META.impr));const freqK=reachRange?imprAcct/reachRange:0;
-  const foot=rangeLen()+' '+unit()+(mCamp!=='all'?' · '+mCamp:'');
+  const foot=rangeLen()+' '+unit()+campLbl(mCamp);
   document.getElementById('m-kpi1').innerHTML=card('k2',eur(tc),'Investissement',foot)+card('k1',fmt(tl),'Demandes de devis','')+card('k3',eur1(cpl),'CPL','coût par devis')+card('k4',pct(tk?tl/tk*100:0),'Taux de conversion','devis / clic');
-  document.getElementById('m-kpi2').innerHTML=card('kc',fmt(ti),'Impressions','')+card('kc',fmt(tk),'Clics','')+card('kc',eur1(cpc),'CPC','')+card('kc',pct(ctr),'CTR','')+card('k5',hasReach?num2(freqK):'—','Répétition',hasReach?'impressions / portée'+(mCamp!=='all'?' · compte':''):'donnée indisponible');
-  const sub=(gran==='month'?'par mois':'par semaine')+(mCamp!=='all'?' · '+mCamp:'');document.getElementById('mLeadSub').textContent=sub;document.getElementById('mCplSub').textContent=sub;
+  document.getElementById('m-kpi2').innerHTML=card('kc',fmt(ti),'Impressions','')+card('kc',fmt(tk),'Clics','')+card('kc',eur1(cpc),'CPC','')+card('kc',pct(ctr),'CTR','')+card('k5',hasReach?num2(freqK):'—','Répétition',hasReach?'impressions / portée'+(mCamp.length?' · compte':''):'donnée indisponible');
+  const sub=(gran==='month'?'par mois':'par semaine')+campLbl(mCamp);document.getElementById('mLeadSub').textContent=sub;document.getElementById('mCplSub').textContent=sub;
   const cplSeries=cost.map((c,i)=>leads[i]?c/leads[i]:0);
   attachTip('mLeadWrap','mLeadChart','mLeadTip',comboChart('mLeadChart',L,{name:'Investissement',color:C.blue,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'Demandes de devis',color:C.orange,data:leads,fmt:fmt,fmtAxis:v=>Math.round(v),dlFmt:v=>fmt(v)}));
   attachTip('mCplWrap','mCplChart','mCplTip',comboChart('mCplChart',L,{name:'Investissement',color:C.blue,data:cost,fmt:eur,fmtAxis:v=>k(v)+'€'},{name:'CPL',color:C.green,data:cplSeries,fmt:eur1,fmtAxis:v=>Math.round(v)+'€',dlFmt:v=>eur1(v)}));
-  document.getElementById('mTableSub').textContent='Période affichée ('+rangeLen()+' '+unit()+')'+(mCamp!=='all'?' · '+mCamp:'');
+  document.getElementById('mTableSub').textContent='Période affichée ('+rangeLen()+' '+unit()+')'+campLbl(mCamp);
   let cs=(META.campaignsP?aggRange(META.campaignsP,['cost','leads','impr','clicks']):META.campaigns.slice());
-  if(mCamp!=='all')cs=cs.filter(c=>c.name===mCamp);
+  if(mCamp.length)cs=cs.filter(c=>mCamp.includes(c.name));
   const mcst=(META.campStatus)||{};
   let mrows=cs.map(c=>({name:c.name,cost:c.cost,leads:c.leads,cpr:(c.leads?c.cost/c.leads:0),impr:c.impr,clicks:c.clicks}));
   if(mStatus!=='all')mrows=mrows.filter(r=>passStatus(mcst[r.name],mStatus));
@@ -387,7 +399,7 @@ function renderMeta(){
   h+='<tr class="total"><td>Total</td><td>'+eur(Tc)+'</td><td>'+fmt(Tl)+'</td><td>'+(Tl?eur1(Tc/Tl):'—')+'</td><td>'+fmt(Ti)+'</td><td>'+fmt(Tk)+'</td></tr></tbody>';
   document.getElementById('m-table').innerHTML=h;
   // ad sets (filtrés par campagne via campName si dispo)
-  const setPred=mCamp==='all'?null:(e=>e.campName===mCamp);
+  const setPred=mCamp.length?(e=>mCamp.includes(e.campName)):null;
   let sets=(META.adsetsP?aggRangeF(META.adsetsP,['cost','leads'],setPred):META.adsets.slice()).sort((a,b)=>b.cost-a.cost);
   const mast=(META.adsetStatus)||{};
   let arows=sets.map(a=>({name:a.name,camp:(a.campName||a.camp),cost:a.cost,leads:a.leads,cpr:(a.leads?a.cost/a.leads:0),_st:mast[a.name+'||'+(a.campName||'')]}));
@@ -408,7 +420,7 @@ function renderMeta(){
 }
 function fillCreaDatalist(names){const dl=document.getElementById('mCreaList');if(!dl)return;const uniq=[...new Set(names)].sort((a,b)=>a.localeCompare(b,'fr'));const sig=mCamp+'|'+uniq.join('¦');if(dl.dataset.sig===sig)return;dl.dataset.sig=sig;dl.innerHTML=uniq.map(n=>'<option value="'+n.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"></option>').join('');}
 function renderMetaAds(){
-  const adPred=mCamp==='all'?null:(e=>e.camp===mCamp);
+  const adPred=mCamp.length?(e=>mCamp.includes(e.camp)):null;
   const hasRich=META.adsP&&META.adsP.some(p=>p&&p.length&&('impr' in p[0]));
   let ads=(META.adsP?aggRangeF(META.adsP,hasRich?['cost','leads','impr','clicks','reach']:['cost','leads'],adPred):(META.ads||[]).slice());
   const th=(META.adThumbs)||{},stt=(META.adStatus)||{};
@@ -421,7 +433,7 @@ function renderMetaAds(){
   const cth=cprThresholds(rows.map(r=>r.cpr));
   rows=sortRows(rows,adsSort);
   const stLbl=mStatus==='on'?' · actives':(mStatus==='off'?' · en pause':'');
-  document.getElementById('mAdsSub').textContent='Créas sur la période ('+rangeLen()+' '+unit()+')'+(mCamp!=='all'?' · '+mCamp:'')+(q?' · « '+mCrea+' »':'')+stLbl+' — '+rows.length+' créa(s)';
+  document.getElementById('mAdsSub').textContent='Créas sur la période ('+rangeLen()+' '+unit()+')'+campLbl(mCamp)+(q?' · « '+mCrea+' »':'')+stLbl+' — '+rows.length+' créa(s)';
   let h='<thead><tr>'+thS(adsSort,'name','Publicité','acol')+thS(adsSort,'cost','Dépense')+thS(adsSort,'leads','Résultats')+thS(adsSort,'cpr','Coût/résultat')+thS(adsSort,'freq','Répétition')+thS(adsSort,'impr','Impressions')+thS(adsSort,'clicks','Clics')+thS(adsSort,'cpc','CPC')+thS(adsSort,'ctr','CTR')+'</tr></thead><tbody>';
   let Tc=0,Tl=0,Ti=0,Tk=0,Tr=0;
   rows.forEach(a=>{
@@ -442,7 +454,7 @@ function renderCopy(){
   const copy=META.adCopy;
   if(!copy||!META.adsP){panel.style.display='none';return;}
   panel.style.display='';
-  const adPred=mCamp==='all'?null:(e=>e.camp===mCamp);
+  const adPred=mCamp.length?(e=>mCamp.includes(e.camp)):null;
   const stt=(META.adStatus)||{};
   let ads=aggRangeF(META.adsP,['cost','leads','impr','clicks'],adPred);
   if(mStatus!=='all')ads=ads.filter(a=>passStatus(stt[a.name],mStatus));
@@ -466,7 +478,7 @@ function renderCopy(){
   }).join('');
   document.getElementById('copyList').innerHTML=html||'<div class="cnote">Aucune créa avec dépense sur cette période / ce filtre.</div>';
   const nEmpty=rows.filter(r=>r.empty).reduce((s,r)=>s+r.n,0);
-  document.getElementById('copySub').textContent='Créas regroupées par '+(copyMode==='t'?'titre':'texte principal')+' sur la période ('+rangeLen()+' '+unit()+')'+(mCamp!=='all'?' · '+mCamp:'')+(mStatus==='on'?' · actives':(mStatus==='off'?' · en pause':''))+'.';
+  document.getElementById('copySub').textContent='Créas regroupées par '+(copyMode==='t'?'titre':'texte principal')+' sur la période ('+rangeLen()+' '+unit()+')'+campLbl(mCamp)+(mStatus==='on'?' · actives':(mStatus==='off'?' · en pause':''))+'.';
   document.getElementById('copyNote').innerHTML='Barre = part du budget · pastille = coût/résultat (vert = meilleur, rouge = plus cher). « à confirmer » = moins de '+COPY_MINRES+' résultats.'+(nEmpty?' · '+nEmpty+' créa(s) sans '+(copyMode==='t'?'titre':'texte')+' renseigné.':'')+'<br><b>Test A/B propre :</b> même visuel + un seul titre/texte par créa dans le même ad set.';
 }
 function renderAcq(tab){
@@ -504,15 +516,26 @@ function fillDateSelects(){
   const opts=LABELS.map((l,i)=>'<option value="'+i+'">'+l+'</option>').join('');
   f.innerHTML=opts;t.innerHTML=opts;f.value=rangeStart;t.value=rangeEnd;
 }
+function campBtnLabel(sel){return !sel.length?'Toutes les campagnes':(sel.length===1?sel[0]:sel.length+' campagnes sélectionnées');}
+function buildMs(prefix,names,sel,onChange){
+  const menu=document.getElementById(prefix+'Menu'),btn=document.getElementById(prefix+'Btn');
+  if(!menu||!btn)return;
+  for(let i=sel.length-1;i>=0;i--)if(!names.includes(sel[i]))sel.splice(i,1);
+  let h='<label class="ms-opt all"><input type="checkbox" data-all="1"'+(!sel.length?' checked':'')+'><span>Toutes les campagnes</span></label>';
+  h+=names.map(n=>'<label class="ms-opt"><input type="checkbox" value="'+esc(n)+'"'+(sel.includes(n)?' checked':'')+'><span>'+esc(n)+'</span></label>').join('');
+  menu.innerHTML=h;
+  btn.textContent=campBtnLabel(sel);
+  menu.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',()=>{
+    if(inp.dataset.all){sel.length=0;}
+    else{const v=inp.value;if(inp.checked){if(!sel.includes(v))sel.push(v);}else{const idx=sel.indexOf(v);if(idx>=0)sel.splice(idx,1);}}
+    const allBox=menu.querySelector('input[data-all]');if(allBox)allBox.checked=!sel.length;
+    btn.textContent=campBtnLabel(sel);
+    onChange();
+  }));
+}
 function fillCampSelects(){
-  const gs=document.getElementById('gCampSel'),ms=document.getElementById('mCampSel');
-  const gList=(GADS.campaigns||[]).map(c=>c.name);
-  const mList=(META.campaigns||[]).map(c=>c.name);
-  if(!gList.includes(gCamp))gCamp='all';
-  if(!mList.includes(mCamp))mCamp='all';
-  gs.innerHTML='<option value="all">Toutes les campagnes</option>'+gList.map(c=>'<option'+(c===gCamp?' selected':'')+'>'+c+'</option>').join('');
-  ms.innerHTML='<option value="all">Toutes les campagnes</option>'+mList.map(c=>'<option'+(c===mCamp?' selected':'')+'>'+c+'</option>').join('');
-  gs.value=gCamp;ms.value=mCamp;
+  buildMs('gCamp',(GADS.campaigns||[]).map(c=>c.name),gCamp,()=>renderGads());
+  buildMs('mCamp',(META.campaigns||[]).map(c=>c.name),mCamp,()=>renderMeta());
 }
 function applyGran(g){gran=g;setActive();rangeStart=0;rangeEnd=N-1;fillDateSelects();fillCampSelects();render();}
 document.querySelectorAll('.gbtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.gbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');applyGran(b.dataset.g);}));
@@ -520,8 +543,9 @@ document.getElementById('fromSel').addEventListener('change',e=>{rangeStart=+e.t
 document.getElementById('toSel').addEventListener('change',e=>{rangeEnd=+e.target.value;if(rangeEnd<rangeStart){rangeStart=rangeEnd;document.getElementById('fromSel').value=rangeStart;}render();});
 document.getElementById('rangeReset').addEventListener('click',()=>{rangeStart=0;rangeEnd=N-1;fillDateSelects();render();});
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');tab=b.dataset.t;document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));document.getElementById('slide-'+tab).classList.add('active');render();}));
-document.getElementById('gCampSel').addEventListener('change',e=>{gCamp=e.target.value;render();});
-document.getElementById('mCampSel').addEventListener('change',e=>{mCamp=e.target.value;render();});
+document.querySelectorAll('.ms-btn').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();const ms=btn.closest('.ms');const open=ms.classList.contains('open');document.querySelectorAll('.ms').forEach(x=>x.classList.remove('open'));if(!open)ms.classList.add('open');}));
+document.querySelectorAll('.ms-menu').forEach(m=>m.addEventListener('click',e=>e.stopPropagation()));
+document.addEventListener('click',()=>document.querySelectorAll('.ms').forEach(x=>x.classList.remove('open')));
 document.getElementById('mCreaSearch').addEventListener('input',e=>{mCrea=e.target.value;renderMetaAds();});
 document.getElementById('mStatusSel').addEventListener('change',e=>{mStatus=e.target.value;renderMeta();});
 document.getElementById('gStatusSel').addEventListener('change',e=>{gStatus=e.target.value;renderGads();});
